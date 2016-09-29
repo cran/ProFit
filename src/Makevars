@@ -1,0 +1,20 @@
+CXX_STD = CXX11
+
+PKG_CPPFLAGS = -Ilibprofit  -DPROFIT_VERSION=`cat libprofit/VERSION` -DHAVE_R
+
+OBJECTS = libprofit/src/brokenexponential.o \
+          libprofit/src/convolve.o \
+          libprofit/src/coresersic.o \
+          libprofit/src/ferrer.o \
+          libprofit/src/king.o \
+          libprofit/src/moffat.o \
+          libprofit/src/profit.o \
+          libprofit/src/psf.o \
+          libprofit/src/radial.o \
+          libprofit/src/sersic.o \
+          libprofit/src/sky.o \
+          libprofit/src/utils.o \
+          r_profit.o \
+          ProFit.o \
+          RcppExports.o \
+          gauss.o
