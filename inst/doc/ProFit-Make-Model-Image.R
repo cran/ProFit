@@ -5,11 +5,11 @@ library(ProFit)
 ExampleImage0=profitMakeModel(list(sersic=list(xcen=50, ycen=50, re=4, nser=4, ang=30, axrat=0.5)))
 str(ExampleImage0)
 
-## ---- fig.width=5, fig.height=5------------------------------------------
-image(ExampleImage0)
+## ---- fig.width=5, fig.height=5, eval=F----------------------------------
+#  image(ExampleImage0)
 
-## ---- fig.width=5, fig.height=5------------------------------------------
-magimage(ExampleImage0)
+## ---- fig.width=5, fig.height=5, eval=F----------------------------------
+#  magimage(ExampleImage0)
 
 ## ------------------------------------------------------------------------
 model1 = list(
@@ -37,21 +37,23 @@ model1 = list(
 ExampleImage1=profitMakeModel(model=model1, dim=c(200,200))
 str(ExampleImage1)
 
-## ---- fig.width=5, fig.height=5------------------------------------------
-magimage(ExampleImage1)
+## ---- fig.width=5, fig.height=5, eval=F----------------------------------
+#  magimage(ExampleImage1)
 
-## ---- fig.width=5, fig.height=5------------------------------------------
+## ------------------------------------------------------------------------
 ExamplePSF = profitMakePointSource()
 ExamplePSF = ExamplePSF/sum(ExamplePSF)
 ExampleImagePSF1=profitMakeModel(model=model1, psf=ExamplePSF, dim=c(200,200))
-magimage(ExampleImagePSF1)
+
+## ---- fig.width=5, fig.height=5, eval=F----------------------------------
+#  magimage(ExampleImagePSF1)
 
 ## ---- fig.width=5, fig.height=5------------------------------------------
 model1a=model1
 model1a$psf = list(sersic=list(nser=0.5,mag=0,re=1,axrat=1,ang=0))
 ExampleImagePSF1A=profitMakeModel(model=model1a, psf=ExamplePSF, dim=c(200,200))
 
-## ---- fig.width=5, fig.height=5------------------------------------------
+## ------------------------------------------------------------------------
 modelBD = list(
 	sersic = list(
 		xcen   = c(100, 100),
@@ -65,6 +67,8 @@ modelBD = list(
 	)
 )
 ExampleImage = profitMakeModel(model=modelBD, psf=ExamplePSF, dim=c(200,200))
+
+## ------------------------------------------------------------------------
 magimage(ExampleImage)
 
 ## ------------------------------------------------------------------------
@@ -74,8 +78,8 @@ FinePSFmodel$sersic$re = FinePSFmodel$sersic$re*Finesample
 ExamplePSFFine = profitMakePointSource(model=FinePSFmodel,image = matrix(0,27,27))
 ExampleImageFine = profitMakeModel(model=modelBD, dim=c(200,200),finesample = Finesample)
 
-## ---- fig.width=5, fig.height=5------------------------------------------
-magimage(ExampleImageFine$z-ExampleImage$z)
+## ---- fig.width=5, fig.height=5, eval=F----------------------------------
+#  magimage(ExampleImageFine$z-ExampleImage$z)
 
 ## ------------------------------------------------------------------------
 model2 = list(

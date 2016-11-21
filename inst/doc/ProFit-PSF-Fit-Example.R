@@ -24,16 +24,16 @@ psf = readFITS(system.file("extdata", paste(datasource,'/',useID,'psfim.fits',se
 psf=psf/sum(psf)
 psfsigma=sqrt(abs(psf))/200 #To get reasonable PSF errors
 
-## ------------------------------------------------------------------------
-temp=magimage(psf,lo=0,hi=1)
-contour(temp, add=T, col='red', drawlabels = FALSE)
+## ---- fig.width=5, fig.height=5, eval=F----------------------------------
+#  temp=magimage(psf,lo=0,hi=1)
+#  contour(temp, add=T, col='red', drawlabels = FALSE)
 
-## ------------------------------------------------------------------------
-magplot(psf[13,],type='l')
-lines(psf[12,],lty=2,col='red')
-lines(psf[14,],lty=2,col='blue')
-lines(psf[11,],lty=3,col='red')
-lines(psf[15,],lty=3,col='blue')
+## ---- fig.width=5, fig.height=5, eval=F----------------------------------
+#  magplot(psf[13,],type='l')
+#  lines(psf[12,],lty=2,col='red')
+#  lines(psf[14,],lty=2,col='blue')
+#  lines(psf[11,],lty=3,col='red')
+#  lines(psf[15,],lty=3,col='blue')
 
 ## ------------------------------------------------------------------------
 modellist=list(
@@ -52,8 +52,10 @@ modellist
 
 ## ------------------------------------------------------------------------
 psfmodel=profitMakeModel(modellist,dim=c(25,25))$z
-magimage(psfmodel)
-magimage(abs(psfmodel-psf)/psfmodel,zlim=c(0,1))
+
+## ---- fig.width=5, fig.height=5, eval=F----------------------------------
+#  magimage(psfmodel)
+#  magimage(abs(psfmodel-psf)/psfmodel,zlim=c(0,1))
 
 ## ------------------------------------------------------------------------
 tofit=list(
@@ -100,13 +102,13 @@ intervals=list(
 ## ------------------------------------------------------------------------
 Data=profitSetupData(image=psf, mask=(psf==0), sigma=psfsigma, modellist=modellist, tofit=tofit, tolog=tolog, intervals=intervals, magzero=0, algo.func='optim', verbose=TRUE, like.func = 'norm')
 
-## ----  fig.width=7, fig.height=3-----------------------------------------
-profitLikeModel(parm=Data$init, Data=Data, makeplots=TRUE, plotchisq=TRUE)
+## ----  fig.width=7, fig.height=5, eval=F---------------------------------
+#  profitLikeModel(parm=Data$init, Data=Data, makeplots=TRUE, plotchisq=TRUE)
 
-## ---- eval=FALSE---------------------------------------------------------
+## ---- eval=FALSE, fig.width=5, fig.height=5------------------------------
 #  optimfit=optim(Data$init, profitLikeModel, method='BFGS', Data=Data, control=list(fnscale=-1))
 
-## ---- eval=FALSE---------------------------------------------------------
+## ---- eval=FALSE, fig.width=5, fig.height=5------------------------------
 #  profitLikeModel(optimfit$par, Data,makeplots=TRUE, plotchisq=TRUE)
 
 ## ---- eval=FALSE---------------------------------------------------------
@@ -118,7 +120,7 @@ profitLikeModel(parm=Data$init, Data=Data, makeplots=TRUE, plotchisq=TRUE)
 ## ---- eval=FALSE---------------------------------------------------------
 #  profitLikeModel(LDfit$Summary2[,1], Data,makeplots=TRUE, plotchisq=TRUE)
 
-## ---- eval=FALSE---------------------------------------------------------
+## ---- eval=FALSE, fig.width=5, fig.height=5------------------------------
 #  PSFmodellist=profitRemakeModelList(optimfit$par, modellist, tofit=tofit, tolog=tolog)
 #  PSFmodellist$moffat$xcen=12.5
 #  PSFmodellist$moffat$xcen=12.5
@@ -205,7 +207,7 @@ intervals=list(
 )
 
 ## ------------------------------------------------------------------------
-Data=profitSetupData(image=image, mask=mask, sigma=sigma, segim=segim, psf=psfmodel,
+Data=profitSetupData(image=image, sigma=sigma, segim=segim, mask=mask, psf=psfmodel,
                      modellist=modellist, tofit=tofit, tolog=tolog, intervals=intervals,
                      magzero=0, algo.func='optim', like.func = "t", verbose=TRUE)
 
@@ -226,7 +228,7 @@ Data=profitSetupData(image=image, mask=mask, sigma=sigma, segim=segim, psf=psfmo
 #  profitEllipsePlot(Data,modeloptim,pixscale=0.339,FWHM=1,SBlim=26)
 
 ## ------------------------------------------------------------------------
-Data=profitSetupData(image=image, mask=mask, sigma=sigma, segim=segim, psf=psf,
+Data=profitSetupData(image=image, sigma=sigma, segim=segim, mask=mask, psf=psf,
   modellist=modellist, tofit=tofit, tolog=tolog, intervals=intervals, magzero=0,
   algo.func='optim', like.func = "t", verbose=TRUE)
 
@@ -237,12 +239,12 @@ Data=profitSetupData(image=image, mask=mask, sigma=sigma, segim=segim, psf=psf,
 ## ---- eval=FALSE---------------------------------------------------------
 #  optimfitEmp$par
 
-## ---- eval=FALSE---------------------------------------------------------
+## ---- eval=FALSE, fig.width=5, fig.height=5------------------------------
 #  profitLikeModel(optimfitEmp$par,Data,makeplots=TRUE,whichcomponents=list(sersic=1))
 #  profitLikeModel(optimfitEmp$par,Data,makeplots=TRUE,whichcomponents=list(sersic=2))
 #  profitLikeModel(optimfitEmp$par,Data,makeplots=TRUE,whichcomponents=list(sersic='all'))
 
-## ---- eval=FALSE---------------------------------------------------------
+## ---- eval=FALSE, fig.width=5, fig.height=5------------------------------
 #  modeloptim=profitRemakeModelList(optimfitEmp$par,Data$modellist,Data$tofit,Data$tolog)
 #  profitEllipsePlot(Data,modeloptim,pixscale=0.339,FWHM=1,SBlim=26)
 

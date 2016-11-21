@@ -43,14 +43,14 @@ modellist=list(
 )
 modellist
 
-## ---- fig.width=5, fig.height=5------------------------------------------
-magimage(profitMakeModel(modellist,dim=dim(image)))
+## ---- fig.width=5, fig.height=5, eval=F----------------------------------
+#  magimage(profitMakeModel(modellist,dim=dim(image)))
 
-## ---- fig.width=5, fig.height=5------------------------------------------
-magimage(image)
+## ---- fig.width=5, fig.height=5, eval=F----------------------------------
+#  magimage(image)
 
-## ---- fig.width=5, fig.height=5------------------------------------------
-magimage(profitMakeModel(modellist,dim=dim(image),psf=psf))
+## ---- fig.width=5, fig.height=5, eval=F----------------------------------
+#  magimage(profitMakeModel(modellist,dim=dim(image),psf=psf))
 
 ## ------------------------------------------------------------------------
 tofit=list(
@@ -108,7 +108,7 @@ intervals=list(
 )
 
 ## ------------------------------------------------------------------------
-Data=profitSetupData(image=image, mask=mask, sigma=sigma, segim=segim, psf=psf,
+Data=profitSetupData(image=image, sigma=sigma, segim=segim, mask=mask, psf=psf,
                      modellist=modellist, tofit=tofit, tolog=tolog, priors=priors,
                      intervals=intervals,magzero=0, algo.func='optim', like.func = "t",
                      verbose=TRUE)
@@ -116,8 +116,8 @@ Data=profitSetupData(image=image, mask=mask, sigma=sigma, segim=segim, psf=psf,
 ## ------------------------------------------------------------------------
 Data$init
 
-## ----  fig.width=7, fig.height=3-----------------------------------------
-profitLikeModel(parm=Data$init, Data=Data, makeplots=TRUE)
+## ----  fig.width=7, fig.height=3, eval=F---------------------------------
+#  profitLikeModel(parm=Data$init, Data=Data, makeplots=TRUE)
 
 ## ---- eval=FALSE---------------------------------------------------------
 #  sigmas=c(2,2,2,2,5,5,1,1,1,1,30,30,0.3,0.3)
@@ -133,7 +133,7 @@ profitLikeModel(parm=Data$init, Data=Data, makeplots=TRUE)
 #  profitLikeModel(optimfit$par,Data,makeplots=TRUE,whichcomponents=list(sersic='all'))
 
 ## ---- eval=FALSE---------------------------------------------------------
-#  modeloptim=profitRemakeModelList(optimfit$par,Data$modellist,Data$tofit,Data$tolog)
+#  modeloptim=profitRemakeModellist(parm=optimfit$par, Data=Data)$modellist
 #  profitEllipsePlot(Data,modeloptim,pixscale=0.2,FWHM=0.5,SBlim=26)
 
 ## ------------------------------------------------------------------------
@@ -159,7 +159,7 @@ Data$constraints=constraints
 #  profitLikeModel(LAfit$Summary1[,1],Data,makeplots=TRUE,whichcomponents=list(sersic=2))
 #  profitLikeModel(LAfit$Summary1[,1],Data,makeplots=TRUE,whichcomponents=list(sersic='all'))
 #  
-#  modeloptim=profitRemakeModelList(LAfit$Summary1[,1],Data$modellist,Data$tofit,Data$tolog)
+#  modeloptim=profitRemakeModellist(LAfit$Summary1[,1],Data$modellist,Data$tofit,Data$tolog)
 #  profitEllipsePlot(Data,modeloptim,pixscale=0.2,FWHM=0.5,SBlim=26)
 
 ## ---- eval=FALSE---------------------------------------------------------
@@ -199,11 +199,11 @@ Data$constraints=constraints
 #  profitLikeModel(BestLD,Data,makeplots=TRUE,whichcomponents=list(sersic=2))
 #  profitLikeModel(BestLD,Data,makeplots=TRUE,whichcomponents=list(sersic='all'))
 #  
-#  modeloptim=profitRemakeModelList(BestLD,Data$modellist,Data$tofit,Data$tolog)
+#  modeloptim=profitRemakeModellist(BestLD,Data$modellist,Data$tofit,Data$tolog)
 #  profitEllipsePlot(Data,modeloptim,pixscale=0.2,FWHM=0.5,SBlim=26)
 
 ## ----eval=FALSE----------------------------------------------------------
-#  Dataf=profitSetupData(image=image, mask=mask, sigma=sigma, segim=segim, psf=psf,
+#  Dataf=profitSetupData(image=image, sigma=sigma, segim=segim, mask=mask, psf=psf,
 #    modellist=modellist, tofit=tofit, tolog=tolog, priors=priors, intervals=intervals,
 #    magzero=0, algo.func='LD', verbose=TRUE, nbenchmark=3L, finesample=3L)
 
