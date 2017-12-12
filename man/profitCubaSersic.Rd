@@ -13,7 +13,7 @@ Useful functions related to the Sersic profile. \code{profitCubaSersic} computes
 }
 \usage{
 profitCubaSersic(xcen = dim[1]/2, ycen = dim[2]/2, mag = 15, re = 1, nser = 4, ang = 0,
-axrat = 1, box = 0, dim = c(25, 25), rel.tol=1e-3, abs.tol= 1e-10)
+axrat = 1, box = 0, dim = c(25, 25), rel.tol=1e-3, abs.tol= 1e-10, plot = FALSE, ...)
 profitRadialSersic(r = 1, mag = 15, re = 1, nser = 4, ang = 0, axrat = 1, box = 0)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -25,7 +25,7 @@ Scalar; x centre of the 2D Sersic profile (can be fractional pixel positions).
 Scalar; y centre of the 2D Sersic profile (can be fractional pixel positions).
 }
   \item{r}{
-Vector; the radius along the major axis at which to evalutate the flux intensity.  
+Vector; the radius along the major axis at which to evaluate the flux intensity.  
 }
   \item{mag}{
 Scalar; total magnitude of the 2D Sersic profile. Converted to flux using flux=10^(-0.4*(mag-magzero)).
@@ -46,13 +46,19 @@ Scalar; axial ratio of the Sersic profile defined as minor-axis/major-axis, i.e.
 Scalar; the boxiness of the Sersic profile that traces contours of iso-flux, defined such that r[mod]=(x^(2+box)+y^(2+box))^(1/(2+box)). When box=0 the iso-flux contours will be normal ellipses, but modifications between -1<box<1 will produce visually boxy distortions. Negative values have a pin-cushion effect, whereas positive values have a barrel effect (the major and minor axes staying fixed in all cases).
 }
   \item{dim}{
-Scalar; the dimensions of the image to be generated. Typically this should be c(Nx,Ny). If length 1 then the value will be replicated for both dimenions.
+Scalar; the dimensions of the image to be generated. Typically this should be c(Nx,Ny). If length 1 then the value will be replicated for both dimensions.
 }
   \item{rel.tol}{
 Scalar; the requested relative accuracy. Default, 0.001.
 }
   \item{abs.tol}{
 Scalar; the requested absolute accuracy. The algorithm stops when either the relative or the absolute accuracies are met. Default, near 1e-10.  
+}
+  \item{plot}{
+Logical; should a \code{\link{magimage}} plot of the output be generated?
+}
+  \item{\dots}{
+Further arguments to be passed to \code{\link{magimage}}. Only relevant is \option{plot}=TRUE.
 }
 }
 \details{

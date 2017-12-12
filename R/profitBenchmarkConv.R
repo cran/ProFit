@@ -39,11 +39,11 @@
 }
 
 # Benchmarks convolution and covariance functions
-profitBenchmarkConv <- function(image=NULL, psf=NULL, calcregion=NULL, nbench=10L,
+profitBenchmarkConv <- function(image=NULL, psf=NULL, calcregion=NULL, nbench=10,
   methods = c("Bruteconv","FFTconv","FFTWconv"), imagedim=NULL, psfdim=NULL, 
   refftpsf=FALSE, fftwplan=NULL,  maxfftwplaneffort=0)
 {
-  data = .profitBenchmarkPrepData(image,psf,calcregion,imagedim,psfdim)
+  data = .profitBenchmarkPrepData(image=image, psf=psf, calcregion=calcregion, imagedim=imagedim, psfdim=psfdim)
   imagedim = dim(data$image$z)
   psfdim = dim(data$psf$z)
   padimagedim = 2*imagedim
@@ -80,8 +80,8 @@ profitBenchmarkConv <- function(image=NULL, psf=NULL, calcregion=NULL, nbench=10
   }
   if(!refftpsf) 
   {
-    psffftr = .profitBenchmarkPadFFT(psf,padimagedim,psfranges,fftw=FALSE)
-    psffftw = .profitBenchmarkPadFFT(psf,padimagedim,psfranges,fftw=TRUE,fftwplan=fftwplan)
+    psffftr = .profitBenchmarkPadFFT(data$psf$z,padimagedim,psfranges,fftw=FALSE)
+    psffftw = .profitBenchmarkPadFFT(data$psf$z,padimagedim,psfranges,fftw=TRUE,fftwplan=fftwplan)
   }
   
   cropx = (cropimage[1]+1):(imagedim[1]+cropimage[1]) - (imagedim[1]%%2 == 0)
@@ -90,7 +90,8 @@ profitBenchmarkConv <- function(image=NULL, psf=NULL, calcregion=NULL, nbench=10
   bmi = 1
   times = numeric()
   times[bmi] = proc.time()[['elapsed']]
-  if("Bruteconv" %in% names) {
+  dobrute = "Bruteconv" %in% names 
+  if(dobrute) {
     docalcregion = !is.null(calcregion)
     for(i in benchi) imagebrutec1 = profitBruteConv(data$image$z,data$psf$z,data$calcregion,docalcregion)
   
@@ -101,7 +102,7 @@ profitBenchmarkConv <- function(image=NULL, psf=NULL, calcregion=NULL, nbench=10
   if("FFTconv" %in% names) {
     for(i in benchi)
     {
-      if(refftpsf) psffftr = .profitBenchmarkPadFFT(psf,padimagedim,psfranges,fftw=FALSE)
+      if(refftpsf) psffftr = .profitBenchmarkPadFFT(data$psf$z,padimagedim,psfranges,fftw=FALSE)
       rimagepad = matrix(0,padimagedim[1],padimagedim[2])
       rimagepad[1:imagedim[1],1:imagedim[2]] = data$image$z
       imagefftr = fft(rimagepad) * psffftr
@@ -114,7 +115,7 @@ profitBenchmarkConv <- function(image=NULL, psf=NULL, calcregion=NULL, nbench=10
   if("FFTWconv" %in% names) {
     for(i in benchi)
     {
-      if(refftpsf) psffftw = .profitBenchmarkPadFFT(psf,padimagedim,psfranges,fftw=TRUE,fftwplan = fftwplan)
+      if(refftpsf) psffftw = .profitBenchmarkPadFFT(data$psf$z,padimagedim,psfranges,fftw=TRUE,fftwplan = fftwplan)
       rimagepad = matrix(0,padimagedim[1],padimagedim[2])
       rimagepad[1:imagedim[1],1:imagedim[2]] = data$image$z
       imagefftw = FFT(rimagepad, plan=fftwplan) * psffftw
@@ -124,6 +125,24 @@ profitBenchmarkConv <- function(image=NULL, psf=NULL, calcregion=NULL, nbench=10
     }
     bmi = bmi + 1
     times[bmi] = proc.time()[['elapsed']]
+  }
+  
+  if(dobrute)
+  {
+    for(ffttype in c("FFTconv","FFTWconv"))
+    {
+      if(ffttype %in% names)
+      {
+        if(ffttype == "FFTconv") diffabs = imagefftr
+        else diffabs = imagefftw
+        diffabs = diffabs - imagebrutec1
+        diffabsr = range(diffabs)
+        print(paste0("Diff. ",ffttype," range: ", sprintf("%.4e %.4e", diffabsr[1], diffabsr[2])))
+        diffabs = diffabs/imagebrutec1
+        diffabsr = range(diffabs)
+        print(paste0("Rel. diff. ",ffttype," range: ", sprintf("%.4e %.4e", diffabsr[1], diffabsr[2])))
+      }
+    }
   }
   
   ntimes = length(times)
@@ -141,9 +160,9 @@ profitBenchmarkConv <- function(image=NULL, psf=NULL, calcregion=NULL, nbench=10
   names(tinms) = names
   print(result)
   result = list(result=result,times=tinms,method=names[best],
-    best=list(name=names[best],time=times[best]),
+    best=list(name=names[best],time=tinms[best]),
     fft=list(fftwplan=fftwplan, paddim = padimagedim, 
       padimagex = 1:imagedim[1], padimagey=1:imagedim[2], cropx=cropx, cropy=cropy, 
-      psf = list(r=psffftr, w=psffftw, x = psfranges[1], y = psfranges[2])))
-  return(result)
+      psf = list(r=psffftr, w=psffftw, x = psfranges[[1]], y = psfranges[[2]])))
+  return=result
 }

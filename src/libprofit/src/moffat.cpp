@@ -27,9 +27,10 @@
 #include <cmath>
 #include <algorithm>
 
+#include "profit/common.h"
+#include "profit/exceptions.h"
 #include "profit/moffat.h"
 
-using namespace std;
 
 namespace profit
 {
@@ -48,23 +49,15 @@ namespace profit
  * Reducing:
  *  r_factor = ((x/rscale)^{2+b} + (y/rscale)^{2+b})^{1/(2+b)}
  */
-static
-double _moffat_for_xy_r(const RadialProfile &sp,
-                        double x, double y,
-                        double r, bool reuse_r) {
+double MoffatProfile::evaluate_at(double x, double y) const {
 
-	const MoffatProfile &mp = static_cast<const MoffatProfile &>(sp);
-	double r_factor;
-	if( mp.box == 0 ) {
-		r_factor = sqrt(x*x + y*y);
-	}
-	else {
-		double box = 2 + mp.box;
-		r_factor = pow( pow(abs(x), box) + pow(abs(y), box), 1./(box));
-	}
+	using std::pow;
+	using std::abs;
 
-	r_factor /= mp.rscale;
-	return pow(1 + r_factor*r_factor, -mp.con);
+	double box = 2 + this->box;
+	double r = pow( pow(abs(x), box) + pow(abs(y), box), 1./(box));
+	double r_factor = r/rscale;
+	return pow(1 + r_factor*r_factor, -con);
 }
 
 void MoffatProfile::validate() {
@@ -80,27 +73,29 @@ void MoffatProfile::validate() {
 
 }
 
-eval_function_t MoffatProfile::get_evaluation_function() {
-	return &_moffat_for_xy_r;
+double MoffatProfile::fluxfrac(double fraction) const {
+	return rscale * std::sqrt(std::pow(1 - fraction, 1/ (1 - con)) - 1);
 }
 
 double MoffatProfile::get_lumtot(double r_box) {
 	double con = this->con;
-	return pow(this->rscale, 2) * M_PI * axrat/(con-1)/r_box;
+	return std::pow(this->rscale, 2) * M_PI * axrat/(con-1)/r_box;
 }
 
 double MoffatProfile::get_rscale() {
-	return fwhm/(2*sqrt(pow(2,(1/con))-1));
+	return fwhm/(2*std::sqrt(std::pow(2,(1/con))-1));
 }
 
+// pchisq((1.823*2*sqrt(2*log(2)))^2,2) = 0.9999004
+// Contains 99.99% of the flux in the Gaussian limit
+// con -> 1 should contain < 50% so this may be redundant, but it's here just in case
 double MoffatProfile::adjust_rscale_switch() {
-	double rscale_switch = this->fwhm*4;
-	rscale_switch = max(min(rscale_switch, 20.), 2.);
-	return rscale_switch / this->rscale;
+	double rscale_switch = std::max(fluxfrac(0.9999), 1.823 * fwhm);
+	return std::max(std::min(rscale_switch, 20.), 2.) / rscale;
 }
 
 double MoffatProfile::adjust_rscale_max() {
-	return 8;
+	return std::ceil(std::max(fluxfrac(0.9999), 2.) / rscale);
 }
 
 double MoffatProfile::adjust_acc() {
@@ -108,11 +103,42 @@ double MoffatProfile::adjust_acc() {
 }
 
 
-MoffatProfile::MoffatProfile(const Model &model) :
-	RadialProfile(model),
+MoffatProfile::MoffatProfile(const Model &model, const std::string &name) :
+	RadialProfile(model, name),
 	fwhm(3), con(2)
 {
 	// no-op
 }
+
+bool MoffatProfile::parameter_impl(const std::string &name, double val) {
+
+	if( RadialProfile::parameter_impl(name, val) ) {
+		return true;
+	}
+
+	if( name == "fwhm" )     { fwhm = val; }
+	else if( name == "con" ) { con = val; }
+	else {
+		return false;
+	}
+
+	return true;
+}
+
+#ifdef PROFIT_OPENCL
+void MoffatProfile::add_kernel_parameters_float(unsigned int index, cl::Kernel &kernel) const {
+	add_kernel_parameters<float>(index, kernel);
+}
+
+void MoffatProfile::add_kernel_parameters_double(unsigned int index, cl::Kernel &kernel) const {
+	add_kernel_parameters<double>(index, kernel);
+}
+
+template <typename FT>
+void MoffatProfile::add_kernel_parameters(unsigned int index, cl::Kernel &kernel) const {
+	kernel.setArg(index++, static_cast<FT>(con));
+}
+
+#endif /* PROFIT_OPENCL */
 
 } /* namespace profit */

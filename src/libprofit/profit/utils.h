@@ -24,8 +24,8 @@
  * along with libprofit.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _UTILS_H_
-#define _UTILS_H_
+#ifndef PROFIT_UTILS_H
+#define PROFIT_UTILS_H
 
 #include <vector>
 
@@ -33,18 +33,15 @@ namespace profit
 {
 
 /**
- * Adds the individual values from `src` and `dest` and stores the result
- * in `dest`. Both images must have the same size.
+ * Checks whether values `x` and `y` are equals,
+ * with a difference of almost `e`.
+ * @param x The first value to compare
+ * @param y The second value to compare
+ * @param e The maximum allowed difference
+ * @return Whether the values are almost equals
  */
-void add_images(std::vector<double> &dest, const std::vector<double> &src);
+bool almost_equals(double x, double y, double e = 1e-10);
 
-/**
- * Normalizes the values of image so their total sum is 1.
- *
- * The values are written back into the image, so if the original needs to be retained
- * then a copy should be supplied.
- */
-void normalize(std::vector<double> &image);
 
 /**
  * Computes the quantile of the gamma distribution for ``p`` and ``shape``
@@ -57,12 +54,26 @@ double qgamma(double p, double shape);
 double pgamma(double q, double shape);
 
 /**
- * Computes the gamma function for ``x``
+ * Computes the gamma function for ``x``.
+ *
+ * @param x The parameter of the gamma function
+ * @returns The value of `gamma(x)`. If `x` is a negative integer
+ * `NaN` is returned. If underflow occurs, `0` is returned.
+ * If x is positive and overflow occurs, `+Inf` is returned.
  */
 double gammafn(double x);
 
 /**
- * Computes the beta function for ``a`` and ``b``
+ * Computes the beta function for ``a`` and ``b``.
+ * This function follows R's beta function semantics;
+ * that is, the result is undefined if either is negative,
+ * and +Inf if either parameter is zero.
+ *
+ * @param a The first parameter of the beta function
+ * @param b The second parameter of the beta function
+ * @returns The value of `beta(a,b)`.
+ * If either is negative `NaN` is returned. If either is 0,
+ * `+Inf` is returned.
  */
 double beta(double a, double b);
 
@@ -100,4 +111,4 @@ double integrate_qags(integration_func_t f, double a, double b, void *params);
 
 } /* namespace profit */
 
-#endif /* _UTILS_H_ */
+#endif /* PROFIT_UTILS_H */

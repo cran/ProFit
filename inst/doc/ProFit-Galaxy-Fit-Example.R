@@ -17,11 +17,10 @@ ExampleIDs
 
 ## ------------------------------------------------------------------------
 useID=ExampleIDs[1]
-image = readFITS(system.file("extdata", paste(datasource,'/',useID,'fitim.fits',sep=''),package="ProFit"))$imDat
-mask = readFITS(system.file("extdata", paste(datasource,'/',useID,'mskim.fits',sep=''),package="ProFit"))$imDat
-sigma = readFITS(system.file("extdata", paste(datasource,'/',useID,'sigma.fits',sep=''),package="ProFit"))$imDat
-segim = readFITS(system.file("extdata", paste(datasource,'/',useID,'segim.fits',sep=''),package="ProFit"))$imDat
-psf = readFITS(system.file("extdata", paste(datasource,'/',useID,'psfim.fits',sep=''),package="ProFit"))$imDat
+image=readFITS(system.file("extdata", paste(datasource,'/',useID,'fitim.fits',sep=''),package="ProFit"))$imDat
+sigma=readFITS(system.file("extdata", paste(datasource,'/',useID,'sigma.fits',sep=''),package="ProFit"))$imDat
+segim=readFITS(system.file("extdata", paste(datasource,'/',useID,'segim.fits',sep=''),package="ProFit"))$imDat
+psf=readFITS(system.file("extdata", paste(datasource,'/',useID,'psfim.fits',sep=''),package="ProFit"))$imDat
 
 ## ------------------------------------------------------------------------
 useIDnum=as.integer(strsplit(useID,'G')[[1]][2])
@@ -43,13 +42,13 @@ modellist=list(
 )
 modellist
 
-## ---- fig.width=5, fig.height=5, eval=F----------------------------------
+## ---- fig.width=5, fig.height=5, eval=FALSE------------------------------
 #  magimage(profitMakeModel(modellist,dim=dim(image)))
 
-## ---- fig.width=5, fig.height=5, eval=F----------------------------------
+## ---- fig.width=5, fig.height=5, eval=FALSE------------------------------
 #  magimage(image)
 
-## ---- fig.width=5, fig.height=5, eval=F----------------------------------
+## ---- fig.width=5, fig.height=5, eval=FALSE------------------------------
 #  magimage(profitMakeModel(modellist,dim=dim(image),psf=psf))
 
 ## ------------------------------------------------------------------------
@@ -90,8 +89,41 @@ priors=function(new,init,sigmas=c(2,2,2,2,5,5,1,1,1,1,30,30,0.3,0.3)){
       dnorm(log10(new$sersic$nser),log10(init$sersic$nser),sigmas[9:10],log=TRUE),
       dnorm(log10(new$sersic$axrat),log10(init$sersic$axrat),sigmas[13:14],log=TRUE)
   )
-  return=LL
+  return(LL)
 }
+print(priors(modellist,modellist))
+
+## ------------------------------------------------------------------------
+sigmavec=c(2,2,5,1,1,30,0.3,0.2)
+priors=function(new,init,sigmas=sigmavec){
+  return(sum(2*dnorm(log10(new$sersic$re),log10(init$sersic$re),sigmas[4],log=TRUE)))
+}
+print(priors(modellist,modellist))
+
+## ------------------------------------------------------------------------
+sigmavec=sigmavec/2
+print(priors(modellist,modellist))
+print(priors)
+
+## ------------------------------------------------------------------------
+sigmas=c(2,2,5,1,1,30,0.3,Inf)
+
+sigmas=list(
+  sersic=list(
+    xcen= numeric(2)+sigmas[1],
+    ycen= numeric(2)+sigmas[2],
+    mag= numeric(2)+sigmas[3],
+    re= numeric(2)+sigmas[4],
+    nser= numeric(2)+sigmas[5],
+    ang= numeric(2)+sigmas[6],
+    axrat= numeric(2)+sigmas[7],
+    box= numeric(2)+sigmas[8]
+  )
+)
+
+priors=profitMakePriors(modellist, sigmas, tolog, allowflat=TRUE)
+print(priors(modellist,modellist))
+print(priors)
 
 ## ------------------------------------------------------------------------
 intervals=list(
@@ -108,16 +140,16 @@ intervals=list(
 )
 
 ## ------------------------------------------------------------------------
-Data=profitSetupData(image=image, sigma=sigma, segim=segim, mask=mask, psf=psf,
+Data=profitSetupData(image=image, sigma=sigma, segim=segim, psf=psf,
                      modellist=modellist, tofit=tofit, tolog=tolog, priors=priors,
-                     intervals=intervals,magzero=0, algo.func='optim', like.func = "t",
+                     intervals=intervals,magzero=0, algo.func='optim', like.func="t",
                      verbose=TRUE)
 
 ## ------------------------------------------------------------------------
 Data$init
 
-## ----  fig.width=7, fig.height=3, eval=F---------------------------------
-#  profitLikeModel(parm=Data$init, Data=Data, makeplots=TRUE)
+## ----  fig.width=7, fig.height=3, dpi=40---------------------------------
+profitLikeModel(parm=Data$init, Data=Data, makeplots=TRUE)
 
 ## ---- eval=FALSE---------------------------------------------------------
 #  sigmas=c(2,2,2,2,5,5,1,1,1,1,30,30,0.3,0.3)
@@ -147,7 +179,7 @@ Data$constraints=constraints
 
 ## ---- eval=FALSE---------------------------------------------------------
 #  library(LaplacesDemon)
-#  Data$algo.func = "LA"
+#  Data$algo.func="LA"
 #  LAfit=LaplaceApproximation(profitLikeModel, parm=Data$init, Data=Data, Iterations=1e3,
 #                             Method='LM', CovEst='Identity', sir=FALSE)
 
@@ -159,8 +191,8 @@ Data$constraints=constraints
 #  profitLikeModel(LAfit$Summary1[,1],Data,makeplots=TRUE,whichcomponents=list(sersic=2))
 #  profitLikeModel(LAfit$Summary1[,1],Data,makeplots=TRUE,whichcomponents=list(sersic='all'))
 #  
-#  modeloptim=profitRemakeModellist(LAfit$Summary1[,1],Data$modellist,Data$tofit,Data$tolog)
-#  profitEllipsePlot(Data,modeloptim,pixscale=0.2,FWHM=0.5,SBlim=26)
+#  modelLA=profitRemakeModellist(LAfit$Summary1[,1],Data$modellist,Data$tofit,Data$tolog)$modellist
+#  profitEllipsePlot(Data,modelLA,pixscale=0.2,FWHM=0.5,SBlim=26)
 
 ## ---- eval=FALSE---------------------------------------------------------
 #  library(devtools)
@@ -168,16 +200,16 @@ Data$constraints=constraints
 
 ## ---- eval=FALSE---------------------------------------------------------
 #  library(cmaeshpc)
-#  Data$algo.func = "CMA"
+#  Data$algo.func="CMA"
 #  sigmas=c(2,2,2,2,5,5,1,1,1,1,30,30,0.3,0.3)
-#  cmasigma = sigmas[which(unlist(tofit) == TRUE)]/3
-#  cmafit = cmaeshpc(Data$init, profitLikeModel, Data=Data, control=list(maxit=1e3,
+#  cmasigma=sigmas[which(unlist(tofit) == TRUE)]/3
+#  cmafit=cmaeshpc(Data$init, profitLikeModel, Data=Data, control=list(maxit=1e3,
 #    fnscale=-1.0, sigma=cmasigma, diag.sigma=TRUE, diag.eigen=TRUE, diag.pop=TRUE,
-#    diag.value=TRUE, maxwalltime=Inf, trace=TRUE, stopfitness = 0, stop.tolx=1e-3*cmasigma))
+#    diag.value=TRUE, maxwalltime=Inf, trace=TRUE, stopfitness=0, stop.tolx=1e-3*cmasigma))
 #  profitLikeModel(cmafit$par,Data,makeplots=TRUE)
 
 ## ---- eval=FALSE---------------------------------------------------------
-#  Data$algo.func = "LD"
+#  Data$algo.func="LD"
 #  
 #  LDfit=LaplacesDemon(profitLikeModel, Initial.Values=LAfit$Summary1[,1], Data=Data,
 #    Iterations=1e4, Algorithm='CHARM', Thinning=1, Specs=list(alpha.star=0.44))
@@ -199,11 +231,11 @@ Data$constraints=constraints
 #  profitLikeModel(BestLD,Data,makeplots=TRUE,whichcomponents=list(sersic=2))
 #  profitLikeModel(BestLD,Data,makeplots=TRUE,whichcomponents=list(sersic='all'))
 #  
-#  modeloptim=profitRemakeModellist(BestLD,Data$modellist,Data$tofit,Data$tolog)
-#  profitEllipsePlot(Data,modeloptim,pixscale=0.2,FWHM=0.5,SBlim=26)
+#  modelLD=profitRemakeModellist(BestLD,Data$modellist,Data$tofit,Data$tolog)$modellist
+#  profitEllipsePlot(Data,modelLD,pixscale=0.2,FWHM=0.5,SBlim=26)
 
 ## ----eval=FALSE----------------------------------------------------------
-#  Dataf=profitSetupData(image=image, sigma=sigma, segim=segim, mask=mask, psf=psf,
+#  Dataf=profitSetupData(image=image, sigma=sigma, segim=segim, psf=psf,
 #    modellist=modellist, tofit=tofit, tolog=tolog, priors=priors, intervals=intervals,
 #    magzero=0, algo.func='LD', verbose=TRUE, nbenchmark=3L, finesample=3L)
 
@@ -211,7 +243,7 @@ Data$constraints=constraints
 #  profitLikeModel(BestLD,Dataf,makeplots=TRUE,whichcomponents=list(sersic='all'))
 
 ## ---- eval=FALSE---------------------------------------------------------
-#  Dataf$algo.func = "LA"
+#  Dataf$algo.func="LA"
 #  LAfitf=LaplaceApproximation(profitLikeModel, parm=LAfit$Summary1[,1], Data=Dataf, Iterations=1e3,
 #    Method='BFGS', CovEst='Identity', sir=FALSE)
 
@@ -219,7 +251,7 @@ Data$constraints=constraints
 #  profitLikeModel(LAfitf$Summary1[,1],Dataf,makeplots=TRUE)
 
 ## ---- eval=FALSE---------------------------------------------------------
-#  Dataf$algo.func = "LD"
+#  Dataf$algo.func="LD"
 #  
 #  LDfitf=LaplacesDemon(profitLikeModel, Initial.Values=LAfitf$Summary1[,1], Data=Dataf,
 #    Iterations=1e3, Algorithm='CHARM', Thinning=1, Specs=list(alpha.star=0.44))

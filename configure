@@ -1,0 +1,324 @@
+#!/bin/sh
+
+detect_system() {
+	# R_HOME and stuff
+	if test -z "${R_HOME}"; then
+		echo "could not determine R_HOME"
+		exit 1
+	fi
+
+	CC=`"${R_HOME}/bin/R" CMD config CC`
+	CFLAGS=`"${R_HOME}/bin/R" CMD config CFLAGS`
+	LDFLAGS=`"${R_HOME}/bin/R" CMD config LDFLAGS`
+	OS=`uname`
+}
+
+has_cl_headers() {
+	has_headers="no"
+	cat > $tmpdir/clheaders.c <<HDRS
+#if defined(__APPLE__) || defined(__MACOSX)
+#include <OpenCL/opencl.h>
+#else
+#include <CL/opencl.h>
+#endif // !__APPLE__
+int main() {}
+HDRS
+
+	$CC $CFLAGS -c $tmpdir/clheaders.c -o $tmpdir/clheaders.o 2> /dev/null
+	if [ $? -eq 0 ]; then
+		has_headers="yes"
+	fi
+	echo $has_headers
+}
+
+get_cl_libflags() {
+	if [ "$OS" = "Darwin" ]; then
+		echo "-framework OpenCL"
+	else
+		echo "-lOpenCL"
+	fi
+}
+
+
+has_cl_func() {
+	func=$1
+	has_func="no"
+	echo "int main() { ${func}(); }" > $tmpdir/clfunc_$func.c
+	$CC $CFLAGS -c $tmpdir/clfunc_$func.c -o $tmpdir/clfunc_$func.o 2> /dev/null
+	if [ $? -eq 0 ]; then
+		$CC $LDFLAGS $tmpdir/clfunc_$func.o -o $tmpdir/clfunc_$func `get_cl_libflags` 2> /dev/null
+		if [ $? -eq 0 ]; then
+			has_func="yes"
+		fi
+	fi
+	echo $has_func
+}
+
+
+find_max_cl_version() {
+	func20=clCreateCommandQueueWithProperties
+	func12=clCompileProgram
+	func11=clSetEventCallback
+	for ver in 20 12 11; do
+		maj=`expr $ver / 10`
+		min=`expr $ver % 10`
+		echo "- Looking for OpenCL version $maj.$min"
+		cat > $tmpdir/clversion.c <<CLVER
+#if defined(__APPLE__) || defined(__MACOSX)
+#include <OpenCL/opencl.h>
+#else
+#include <CL/opencl.h>
+#endif // !__APPLE__
+int main() { return CL_VERSION_${maj}_${min}; }
+CLVER
+
+		$CC $CFLAGS -c $tmpdir/clversion.c -o $tmpdir/clversion.o 2> /dev/null
+		if [ $? -eq 0 ]; then
+			eval "funcname=\$func${ver}"
+			echo "- OpenCL version $maj.$min found in header, checking for function $funcname in library"
+			if [ `has_cl_func $funcname` = "yes" ]
+			then
+				return $ver
+			fi
+
+			# Mmmh, this is not normal. Still, we are super-nice and try our best
+			echo ""
+			echo "################################################################################"
+			echo " The OpenCL headers found by the compiler declare version $maj.$min, but the OpenCL"
+			echo " library found by the linker doesn't implement it (because it's missing the"
+			echo " $funcname function, introduced in OpenCL $maj.$min)."
+			echo " This possibly indicates that there is a mixed OpenCL installation in your"
+			echo " machine, or that the flags given to the compiler are pointing to different"
+			echo " OpenCL installations."
+			echo ""
+			echo " We will continue looking for lower OpenCL versions, until we find one that"
+			echo " matches both headers and library, but you may want to double-check that "
+			echo " things are in order."
+			echo "################################################################################"
+			echo ""
+		fi
+	done
+
+	return 0
+}
+
+get_omp_cflag() {
+
+	cat > $tmpdir/openmp.c <<OMP
+#include <omp.h>
+int main() {
+#ifdef _OPENMP
+	return 0;
+#else
+	breaks_on_purpose
+#endif
+}
+OMP
+
+	for flag in "" "-fopenmp" "-fopenmp=libomp" "-openmp" "-xopenmp" "-mp"; do
+		$CC $CFLAGS $flag -c $tmpdir/openmp.c -o $tmpdir/openmp.o 2> /dev/null
+		if [ $? -eq 0 ]; then
+			echo $flag
+			return
+		fi
+	done
+	echo "NOT_FOUND"
+}
+
+has_fftw_headers() {
+	has_headers=no
+	echo "#include <fftw3.h>\nint main(){return 0;}" > $tmpdir/fftw_headers.c
+	$CC $CFLAGS -c $tmpdir/fftw_headers.c -o $tmpdir/fftw_headers.o 2> /dev/null
+	if [ $? -eq 0 ]; then
+		has_headers=yes
+	fi
+	echo $has_headers
+}
+
+has_fftw_lib() {
+	has_lib=no
+	echo "int main(){ fftw_cleanup(); }" > $tmpdir/fftw_lib.c
+	$CC $CFLAGS -c $tmpdir/fftw_lib.c -o $tmpdir/fftw_lib.o 2> /dev/null
+	if [ $? -eq 0 ]; then
+		$CC $LDFLAGS $tmpdir/fftw_lib.o -o $tmpdir/fftw_lib -lfftw3 2> /dev/null
+		if [ $? -eq 0 ]; then
+			has_lib="yes"
+		fi
+	fi
+	echo $has_lib
+}
+
+has_fftw_omp_lib() {
+	has_lib=no
+	if [ "$PROFIT_OPENMP" = "yes" ]; then
+		echo "int main(){ fftw_plan_with_nthreads(); }" > $tmpdir/fftw_omp_lib.c
+		$CC $CFLAGS -c $tmpdir/fftw_omp_lib.c -o $tmpdir/fftw_omp_lib.o 2> /dev/null
+		if [ $? -eq 0 ]; then
+			$CC $LDFLAGS $tmpdir/fftw_omp_lib.o -o $tmpdir/fftw_omp_lib -lfftw3 -lfftw3_omp 2> /dev/null
+			if [ $? -eq 0 ]; then
+				has_lib="yes"
+			fi
+		fi
+	fi
+	echo $has_lib
+}
+
+cmakedefine_sed_replacement() {
+	name=$1
+	eval value=\$$1
+	if [ "${value}" = "yes" ]; then
+		echo "s/#cmakedefine $name\$/#define $name/"
+	else
+		echo "s/#cmakedefine $name\$/#undef $name/"
+	fi
+}
+
+at_sed_replacement() {
+	name=$1
+	eval value=\$$1
+	echo "s/@$name@/$value/"
+}
+
+#
+# Variables used to generate the Makevars config.h files
+#
+
+# These are fixed
+PROFIT_VERSION=`cat src/libprofit/VERSION`
+PROFIT_USES_R=yes
+PROFIT_USES_GSL=no
+PROFIT_DEBUG=no
+
+# These are actually modified by this script
+PROFIT_OPENCL=no
+PROFIT_OPENCL_MAJOR=
+PROFIT_OPENCL_MINOR=
+PROFIT_OPENMP=no
+PROFIT_FFTW=no
+PROFIT_FFTW_OPENMP=no
+profit_CPPFLAGS=
+profit_LIBS=
+
+generate_file() {
+	echo "- Generating $1"
+	sed "$2" $1.in > $1
+}
+
+generate_makevars() {
+	sexpr="`at_sed_replacement profit_CPPFLAGS`"
+	sexpr="$sexpr; `at_sed_replacement profit_LIBS`"
+	generate_file src/Makevars "$sexpr"
+}
+
+generate_config_h() {
+	sexpr="`at_sed_replacement PROFIT_VERSION`"
+	sexpr="$sexpr; `cmakedefine_sed_replacement PROFIT_USES_R`"
+	sexpr="$sexpr; `cmakedefine_sed_replacement PROFIT_USES_GSL`"
+	sexpr="$sexpr; `cmakedefine_sed_replacement PROFIT_DEBUG`"
+	sexpr="$sexpr; `cmakedefine_sed_replacement PROFIT_OPENCL`"
+	sexpr="$sexpr; `cmakedefine_sed_replacement PROFIT_OPENMP`"
+	sexpr="$sexpr; `cmakedefine_sed_replacement PROFIT_FFTW`"
+	sexpr="$sexpr; `cmakedefine_sed_replacement PROFIT_FFTW_OPENMP`"
+	sexpr="$sexpr; `at_sed_replacement PROFIT_OPENCL_MAJOR`"
+	sexpr="$sexpr; `at_sed_replacement PROFIT_OPENCL_MINOR`"
+	generate_file src/libprofit/profit/config.h "$sexpr"
+}
+
+#
+# Prepare for the show
+#
+detect_system
+tmpdir=.profit_tmp
+[ -d $tmpdir ] || mkdir $tmpdir || { echo "couldn't create temporary directory $tmpdir" && exit 1; }
+
+#
+# Check for OpenCL headers, libs and max OpenCL version
+# Skip if required
+#
+cl_libflags=""
+if [ -n "${PROFIT_NO_OPENCL}" ]; then
+	echo "- Skipping OpenCL detection"
+else
+	cl_headers=`has_cl_headers`
+	if [ "$cl_headers" = "yes" ]; then
+		echo "- Found OpenCL headers"
+		find_max_cl_version
+		ver=$?
+		if [ $ver -gt 0 ]; then
+			echo "- Found OpenCL libs"
+			cl_ver_maj=`expr $ver / 10`
+			cl_ver_min=`expr $ver % 10`
+		fi
+	fi
+
+	if [ -n "$cl_ver_maj" ]; then
+		echo "- Compiling with OpenCL $cl_ver_maj.$cl_ver_min support"
+		PROFIT_OPENCL=yes
+		PROFIT_OPENCL_MAJOR=${cl_ver_maj}
+		PROFIT_OPENCL_MINOR=${cl_ver_min}
+		cl_libflags=`get_cl_libflags`
+	else
+		echo "- Compiling without OpenCL support"
+	fi
+fi
+
+#
+# Check for OpenMP support, skip if required
+#
+omp_cflags=""
+omp_libflags=""
+if [ -n "${PROFIT_NO_OPENMP}" ]; then
+	echo "- Skipping OpenMP detection"
+else
+	omp_flag=`get_omp_cflag`
+	if [ "$omp_flag" != "NOT_FOUND" ]; then
+		echo "- Compiling with OpenMP support"
+		PROFIT_OPENMP=yes
+		omp_cflags="$omp_flag"
+		omp_libflags="$omp_flag"
+	else
+		echo "- Compiling without OpenMP support"
+	fi
+
+fi
+
+#
+# Check for FFTW support, skip if required
+#
+fftw_libflags=""
+if [ -n "${PROFIT_NO_FFTW}" ]; then
+	echo "- Skipping FFTW detection"
+else
+	fftw_headers=`has_fftw_headers`
+	if [ "$fftw_headers" = "yes" ]; then
+		echo "- Found FFTW headers"
+		fftw_lib=`has_fftw_lib`
+		if [ "$fftw_lib" = "yes" ]; then
+			echo "- Found FFTW lib"
+			fftw_libflags="-lfftw3"
+			PROFIT_FFTW=yes
+			fftw_omp_lib=`has_fftw_omp_lib`
+			if [ "$fftw_omp_lib" = "yes" ]; then
+				echo "- Found FFTW OpenMP support lib"
+				PROFIT_FFTW_OPENMP=yes
+				fftw_libflags="$fftw_libflags -lfftw3_omp"
+			fi
+		fi
+	fi
+fi
+
+
+#
+# Replace the values in config.h.in/Makevars.in and produce the respective files
+#
+# config.h.in in particular might not contain a newline at the end of the file,
+# which is a problem for some sed implementations, it seems. Let's make them happy
+cp src/libprofit/profit/config.h.in $tmpdir
+echo "" >> src/libprofit/profit/config.h.in
+profit_CPPFLAGS="$omp_cflags"
+profit_LIBS="$cl_libflags $omp_libflags $fftw_libflags"
+generate_makevars
+generate_config_h
+mv $tmpdir/config.h.in src/libprofit/profit/
+
+rm -rf $tmpdir

@@ -5,9 +5,10 @@ profitMakeModel = function(modellist,
                            finesample=1L, returnfine=FALSE, returncrop=TRUE,
                            calcregion, docalcregion=FALSE,
                            magmu=FALSE, remax, rescaleflux=FALSE,
-                           convopt=list(method="Bruteconv")) {
+                           convopt=NULL, psfdim=c(25,25),
+                           openclenv=NULL, omp_threads=NULL, plot=FALSE, ...) {
 
-	stopifnot(is.integer(finesample) && finesample >= 1)
+	profitCheckIsPositiveInteger(finesample)
 
   if(length(dim)==1){dim=rep(dim,2)}
 
@@ -17,7 +18,7 @@ profitMakeModel = function(modellist,
   profilenames = c("sersic","moffat","ferrer","ferrers","coresersic","king","brokenexp")
   componentnames = c(profilenames,"pointsource")
   for(wcname in componentnames) {
-    if(is.null(whichcomponents[[wcname]]) || (whichcomponents[[wcname]] == "all")) {
+    if(is.null(whichcomponents[[wcname]]) || identical(whichcomponents[[wcname]],"all")) {
       if(length(modellist[[wcname]]) > 0){
         whichcomponents[[wcname]] = 1:length(modellist[[wcname]][[1]])
       }else{
@@ -57,11 +58,24 @@ profitMakeModel = function(modellist,
 	# unless they are fitting the PSF - in which case it may need to be
 	# re-generated constantly
 	haspsfmodel = !is.null(modellist$psf)
-	if( haspsfmodel && !haspsf ) {
-		haspsf = TRUE
-		psf = profitMakePointSource(image=matrix(0,dim[1],dim[2]), mag=0, modellist = modellist$psf)
+	if( haspsfmodel && !haspsf)
+	{
+	  haspsf = TRUE
+	  # If there are ANY extended sources, make a PSF
+	  # Otherwise, you don't actually need a PSF image for anything and there's no need to
+	  # add any padding to the model
+	  if(all(names(modellist) %in% c("pointsource", "psf","sky"))) {
+	    psf = matrix(1,1,1)
+	  } else {
+	    psf = profitMakePointSource(image=matrix(0,psfdim[1],psfdim[2]), mag=0, modellist = modellist$psf)
+	    sumpsf = sum(psf)
+      psfsumdiff = abs(sumpsf-1)
+      if(!(psfsumdiff < 1e-2))  stop(paste0("Error; model psf has |sum| -1 = ",psfsumdiff," > 0.01; ",
+        "please adjust your PSF model or psf dimensions until it is properly normalized."))
+      psf = psf/sumpsf
+	  }
 	}
-
+	
 	if( haspsf ) {
 		psfpad = floor(dim(psf)/2)
 	}
@@ -109,10 +123,6 @@ profitMakeModel = function(modellist,
 
 	# Let's start collecting profiles now...
 	profiles = list()
-
-	stopifnot(!is.null(convopt$method) && is.character(convopt$method))
-	usebruteconv = convopt$method == "Bruteconv"
-
 	# Collect the profiles that the user specified
 	for(cname in profilenames) {
 	  ncomponents = 0
@@ -169,7 +179,10 @@ profitMakeModel = function(modellist,
 		  if( length(modellist$pointsource) > 0 && length(whichcomponents$pointsource) > 0 ) {
 
 				submodel = modellist$psf
-				for(i in 1:length(modellist$pointsource)) {
+        npointsources = length(modellist$pointsource$xcen)
+				stopifnot(all(lapply(modellist$pointsource,length) == npointsources))
+				
+				for(i in 1:npointsources) {
 
 					for(comp in names(submodel)) {
 
@@ -191,7 +204,7 @@ profitMakeModel = function(modellist,
 						# If we have to apply the scale again then we simply have to
 						# modify the magnitude we set on these profiles
 						#new_profiles$mag = rep(modellist$pointsource$mag[[i]] - psprofile$mag, length(new_profiles[['mag']]))
-						new_profiles$mag = rep(modellist$pointsource$mag[[i]], n_profiles)
+						new_profiles$mag = new_profiles$mag + modellist$pointsource$mag[[i]]
 
 						# Add default values for missing properties on the submodel profiles
 						add_defaults = function(new_profiles, propname, val) {
@@ -204,14 +217,15 @@ profitMakeModel = function(modellist,
 						  new_profiles = add_defaults(new_profiles, 'ang', 0)
 						  new_profiles = add_defaults(new_profiles, 'axrat', 1)
 						  new_profiles = add_defaults(new_profiles, 'box', 0)
-						  new_profiles = add_defaults(new_profiles, 'rough', F)
+						  new_profiles = add_defaults(new_profiles, 'rough', FALSE)
 						  new_profiles = add_defaults(new_profiles, 'acc', acc)
 						  new_profiles = add_defaults(new_profiles, 'rscale_max', 0)
 						  if(comp == "sersic") {
-						    new_profiles = add_defaults(new_profiles, 'rescale_flux', F)
+						    new_profiles = add_defaults(new_profiles, 'rescale_flux', FALSE)
 						  }
 						}
-
+						# If there are only pointsources with this profile, the profile list will be null so create it first
+            if(is.null(profiles[[comp]])) profiles[[comp]] = list()
 						# Merge into the main list of profiles
 						for(name in c(names(modellist$comp), names(new_profiles))) {
 							profiles[[comp]][[name]] = c(profiles[[comp]][[name]], new_profiles[[name]])
@@ -238,7 +252,7 @@ profitMakeModel = function(modellist,
 		  for(pname in profilenames) {
 		    ncomp = length(whichcomponents[[pname]])
 		    if(length(modellist[[pname]]) > 0 && (ncomp > 0)) {
-		      profiles[[pname]][['convolve']] = rep(usebruteconv, ncomp)
+		      profiles[[pname]][['convolve']] = rep(haspsf, ncomp)
 		    }
 		  }
 		}
@@ -253,7 +267,7 @@ profitMakeModel = function(modellist,
 	# Build the top-level model structure
 	model = list(
 		magzero = magzero,
-		dimensions = dimbase,
+		dimensions = as.integer(dimbase),
 		scale_x = scale_x,
 		scale_y = scale_y,
 		profiles = profiles,
@@ -262,12 +276,22 @@ profitMakeModel = function(modellist,
 	if( docalcregion ) {
 		model[['calcregion']] = calcregion
 	}
+	if( !is.null(openclenv) ) {
+	  if(class(openclenv)=='externalptr'){
+		  model[['openclenv']] = openclenv
+	  }else if(openclenv=='get'){
+	    model[['openclenv']]=profitOpenCLEnv()
+	  }
+	}
+	if( !is.null(omp_threads) ) {
+	  profitCheckIsPositiveInteger(omp_threads)
+		model[['omp_threads']] = omp_threads
+	}
 
-	# Hack to avoid adding point sources to the image if requesting FFT convolution, because libprofit doesn't support it (yet)
-	# TODO: Remove this after adding FFTW convolution to libprofit. R's built-in FFT never seems to be faster so it can go
-	if(!usebruteconv) {
-	  model$profiles$psf = NULL
-	  model$profiles$sky = NULL
+	# If no convolver is explicitly given the Model will automatically create
+	# one internally (if necessary). Thus, it's fine to not always specify one
+	if (!is.null(convopt) && !is.null(convopt$convolver)) {
+		model[['convolver']] = convopt$convolver
 	}
 
 	# Go, go, go!
@@ -276,19 +300,6 @@ profitMakeModel = function(modellist,
 		return(NULL)
 	}
 	dim(basemat) = dimbase
-	if(!usebruteconv) {
-    basemat = profitConvolvePSF(basemat, psf, calcregion, docalcregion, options = convopt)
-    # Re-add point sources/sky if they exist
-    model$profiles = list()
-    model$psf = NULL
-    if(!is.null(profiles$psf)) model$profiles$psf = profiles$psf
-    if(!is.null(profiles$sky)) model$profiles$sky = profiles$sky
-    if(length(model$profiles) > 0) {
-      # Work-around for now until this is fixed in libprofit
-      model$calcregion = T | calcregion
-      basemat = basemat + .Call("R_profit_make_model",model)
-    }
-	}
 
 	# Up to this point basemat has been convolved already
 	# That means that we're explicitly ignoring the convopt parameter
@@ -322,5 +333,9 @@ profitMakeModel = function(modellist,
 	rval$y = seq(pixdim/2,dim[2]-pixdim/2,by=pixdim)
 	rval$z = basemat
 
+	if(plot){
+	  magimage(rval, ...)
+	}
+	
 	return=rval
 }

@@ -13,7 +13,8 @@ whichcomponents=list(sersic = "all", moffat = "all", ferrer = "all", ferrers = "
 coresersic = "all", king = "all", brokenexp = "all", pointsource = "all"), rough = FALSE,
 acc = 0.1, finesample=1L, returnfine=FALSE, returncrop=TRUE, calcregion,
 docalcregion=FALSE, magmu=FALSE, remax, rescaleflux = FALSE,
-convopt=list(method="Bruteconv"))
+convopt=NULL, psfdim = c(25, 25), openclenv = NULL,
+omp_threads = NULL, plot = FALSE, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -24,16 +25,16 @@ The model list that describes the analytic model to be created. See Details.
 The magnitude zero point, where values become scaled by the standard scale=10^(-0.4*(mag-magzero)).
 }
   \item{psf}{
-The PSF matrix to use for the model. This will both be used to convolve the Sersic / Ferrer models and to model point sources (i.e.) stars. If this is left as NULL and a psf model is included in the \option{modellist}, then this analytic PSF will be used instead.
+The PSF matrix to use for the model. This will both be used to convolve the radial profile models and to model point sources (i.e. stars). If this is left as NULL and a psf model is included in the \option{modellist}, then this analytic PSF will be used instead.
 }
   \item{dim}{
-The desired dimenions of the 2D image matrix. This should be a two element vector which specifies c(width,height) in the plotted image. This becomes c(rows,columns) in the matrix itself (see Details below).
+The desired dimensions of the 2D image matrix. This should be a two element vector which specifies c(width,height) in the plotted image. This becomes c(rows,columns) in the matrix itself (see Details below).
 }
   \item{whichcomponents}{
 A list specifying which component of each profile type should be used to create the model image. This is useful if you want to visualise the appearance of e.g. Sersic components 1 and 2 separately. The default entry list=(profilename1="all",...) will show the total model with all components added. If a given profile has no entry in the list, the default is "all", i.e. one must explicitly exclude components rather than including them, and an empty list will exclude nothing; the default value just lists available profile names explicitly.
 }
   \item{rough}{
-Logical; should an approximate model image be created. If TRUE only one evalaution of the Sersic model is made at the centre of each pixel. If FALSE then accurate upsampling is used to create more precise pixel values. It is often useful to use rough=TRUE when you are a long way from a viable solution and you are searching for a reasonable global minimum. Once near the global minimum then rough should be set to FALSE and more precise evalutions of the fit should be made. Rough fits are often pretty good and similar to the much more expensive accurate fits, except for very steep profiles.
+Logical; should an approximate model image be created. If TRUE only one evaluation of the Sersic model is made at the centre of each pixel. If FALSE then accurate upsampling is used to create more precise pixel values. It is often useful to use rough=TRUE when you are a long way from a viable solution and you are searching for a reasonable global minimum. Once near the global minimum then rough should be set to FALSE and more precise evaluations of the fit should be made. Rough fits are often pretty good and similar to the much more expensive accurate fits, except for very steep profiles.
 }
   \item{acc}{
 Desired minimum per pixel accuracy within the upscaling region defined by \option{RESWITCH}. \option{ACC} specifies the allowed fractional difference from adjacent pixels before recursion is triggered. Smaller (i.e. 0.01) means more accurate integration, but increased computation time. 
@@ -42,10 +43,10 @@ Desired minimum per pixel accuracy within the upscaling region defined by \optio
 Integer specifying the number of times to subdivide the model image and therefore finely sample it (compared to the dimensions specified in \option{dim}), for more accurate PSF convolution. Must be one or higher. Note that the \option{psf} image and \option{modellist} PSF are not automatically fine sampled; this is only done by \code{\link{profitSetupData}}.
 }
   \item{returnfine}{
-  Logical flag to return the finely-sampled model instead of downsampling to the specified \option{dim}.
+Logical flag to return the finely-sampled model instead of downsampling to the specified \option{dim}.
 }
   \item{returncrop}{
-  Logical flag to return the appropriately PSF-padded \option{modellist} instead of cropping to the specified \option{dim}.
+Logical flag to return the appropriately PSF-padded \option{modellist} instead of cropping to the specified \option{dim}.
 }
   \item{calcregion}{
 Matrix; logical image matrix the same size as the input \option{image} matrix. If \option{docalcregion}=TRUE, then pixels in \option{calcregion} that are TRUE (or 1) will have the convolution calculated, pixels with FALSE (or 0) values will be set to 0. This is included to increase computation speed in situations where only a small region of the full image contains the galaxy of interest for fitting. In this case pixels a long way from the segmentation region for the galaxy will not need to be convolved in order to calculate the correct likelihood within the segmentation.
@@ -62,13 +63,28 @@ If provided the profile is computed out to this many times Re, after this point 
   \item{rescaleflux}{
 Logical; where the profile has been truncated via \option{remax} this specifies whether the profile should be rescaled since the total integrated flux will be less than without truncation. In practice this means image values are increases by 1/0.9999 for the default case (where the profile is truncated at the point where 99.99\% of flux is contained).  
 }
-\item{convopt}{
-  A list specifying options for convolution. Currently ignored.
+  \item{convopt}{
+A list specifying options for convolution. Currently the only named item used is convolver (which can be obtained via \code{\link{profitMakeConvolver}}; if specified, it is used to perform the convolution of the model (if convolution is required).
+}
+  \item{psfdim}{
+The size of the PSF image to be constructed if a psf modellist is being provided to construct an analytic PSF model.
+}
+  \item{openclenv}{
+  If NULL (default) then the CPU is used to compute the profile. If \option{openclenv} is a legal pointer to a graphics card of class externalptr then that card will be used to make a GPU based model. This object can be obtained from the \code{\link{profitOpenCLEnv}} function directly. If \option{openclenv}='get' then the OpenCL environment is obtained from running \code{\link{profitOpenCLEnv}} with default values (which are usually reasonable).
+}
+  \item{omp_threads}{
+  An integer indicating the number of threads to use to evaluate radial profiles. If not given only one thread is used. \option{openclenv} has precedence over this option, so if both are given then OpenCL evaluation takes place.
+}
+  \item{plot}{
+Logical; should a \code{\link{magimage}} plot of the output be generated?
+}
+  \item{\dots}{
+Further arguments to be passed to \code{\link{magimage}}. Only relevant is \option{plot}=TRUE.
 }
 }
 \details{
 
-A legal model list (\option{modellist}) has the structure of list(sersic, moffat, ferrer, psf, sky). At least one of sersic, coresersic, moffat, ferrer, pointsource, psf or sky should be present. Each of these is itself a list which contain vectors for each relevant parameter. All these vectors should be the same length for each type of model structure.
+A legal model list (\option{modellist}) has the structure of list(sersic, coresersic, moffat, ferrer, king, brokenexp, pointsource, sky). At least one of sersic, coresersic, moffat, ferrer, king, brokenexp, pointsource, psf or sky should be present. Each of these is itself a list which contain vectors for each relevant parameter. All these vectors should be the same length for each type of model structure.
 
 The parameters that must be specified for \option{sersic} are:
 
@@ -77,7 +93,7 @@ The parameters that must be specified for \option{sersic} are:
   \item{ycen}{Vector; y centres of the 2D Sersic profiles (can be fractional pixel positions).}
   \item{mag}{Vector; total magnitudes of the 2D Sersic profiles. Converted to flux using 10^(-0.4*(\option{mag}-\option{magzero})).}
   \item{re}{Vector; effective radii of the 2D Sersic profiles}
-  \item{nser}{Vector; the Sersic indicies of the 2D Sersic profiles}
+  \item{nser}{Vector; the Sersic indices of the 2D Sersic profiles}
   \item{ang}{Vector; the orientation of the major axis of the profile in degrees. When plotted as an R image the angle (theta) has the convention that 0= | (vertical), 45= \, 90= - (horizontal), 135= /, 180= | (vertical). Values outside the range 0 <= ang <= 180 are allowed, but these get recomputed as ang = ang \%\% 180.}
   \item{axrat}{Vector; axial ratios of Sersic profiles defined as minor-axis/major-axis, i.e. 1 is a circle and 0 is a line.}
   \item{box}{Vector; the boxiness of the Sersic profiles that trace contours of iso-flux, defined such that r[mod]=(x^(2+box)+y^(2+box))^(1/(2+box)). When \option{box}=0 the iso-flux contours will be normal ellipses, but modifications between -1<box<1 will produce visually boxy distortions. Negative values have a pin-cushion effect, whereas positive values have a barrel effect (the major and minor axes staying fixed in all cases).}
@@ -182,7 +198,7 @@ modellist = list(\cr
 		nser  = c(10, 4),\cr
 		ang  = c(60, 135),\cr
 		axrat  = c(0.5, 0.3),\cr
-		box = c(2,-2)\cr
+		box = c(0.5,-0.3)\cr
 	),\cr
 	pointsource = list(\cr
 		xcen   = c(34,10,150),\cr
@@ -211,7 +227,7 @@ Aaron Robotham & Dan Taranu
 }
 
 \seealso{
-\code{\link{profitConvolvePSF}}, \code{\link{profitCubaSersic}}, \code{\link{profitCubaCoreSersic}} \code{\link{profitCubaMoffat}}, \code{\link{profitCubaFerrer}}, \code{\link{profitCubaKing}}, \code{\link{profitCubaBrokenExp}}, \code{\link{profitRemakeModellist}}
+\code{\link{profitMakeConvolver}}, \code{\link{profitCubaSersic}}, \code{\link{profitCubaCoreSersic}} \code{\link{profitCubaMoffat}}, \code{\link{profitCubaFerrer}}, \code{\link{profitCubaKing}}, \code{\link{profitCubaBrokenExp}}, \code{\link{profitRemakeModellist}}
 }
 \examples{
 modellist = list(
@@ -237,12 +253,33 @@ modellist = list(
 
 # Without a PSF provided only the extended sources are shown, with no convolution:
 
-magimage(profitMakeModel(modellist=modellist, dim=c(200,200)))
+profitMakeModel(modellist=modellist, dim=c(200,200), plot=TRUE)
 
 # With a PSF provided the PSFs are displayed and the extended sources are convolved with
 # the PSF:
 
-magimage(profitMakeModel(modellist=modellist, psf=profitMakePointSource(), dim=c(200,200)))
+profitMakeModel(modellist=modellist, psf=profitMakePointSource(),
+dim=c(200,200), plot=TRUE)
+
+# Using a GPU to create the image:
+\dontrun{
+tempCL=profitOpenCLEnv()
+profitMakeModel(modellist=modellist, dim=c(200,200), openclenv=tempCL, plot=TRUE)
+
+# The time elapsed is the key thing to check. The system time tends to be higher for
+# OpenCL due to the large number of system calls made to the GPU.
+
+system.time(for(i in 1:100){profitMakeModel(modellist=modellist, dim=c(200,200))})
+system.time(for(i in 1:100){profitMakeModel(modellist=modellist, dim=c(200,200),
+openclenv=tempCL)})
+}
+
+# Using OpenMP to create the image:
+\dontrun{
+system.time(for(i in 1:100){profitMakeModel(modellist=modellist, dim=c(200,200))})
+system.time(for(i in 1:100){profitMakeModel(modellist=modellist, dim=c(200,200), omp_threads=4)})
+}
+
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

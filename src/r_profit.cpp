@@ -1,33 +1,49 @@
 #include <cmath>
+#include <memory>
 #include <sstream>
 #include <vector>
+
+#include <profit/profit.h>
 
 /* Use the cannonical Rf_* names */
 #define R_NO_REMAP
 #include <R.h>
 #include <Rmath.h>
 #include <Rinternals.h>
-
-#include <profit/brokenexponential.h>
-#include <profit/convolve.h>
-#include <profit/coresersic.h>
-#include <profit/ferrer.h>
-#include <profit/king.h>
-#include <profit/moffat.h>
-#include <profit/profit.h>
-#include <profit/psf.h>
-#include <profit/sersic.h>
-#include <profit/sky.h>
+#include <R_ext/Rdynload.h>
 
 using namespace profit;
 using namespace std;
 
 static
 vector<double> _read_image(SEXP r_image, unsigned int *im_width, unsigned int *im_height) {
+
 	*im_width = Rf_nrows(r_image);
 	*im_height = Rf_ncols(r_image);
-	double *r_image_ptr = REAL(r_image);
-	vector<double> image(r_image_ptr, r_image_ptr + (*im_width * *im_height));
+	unsigned int size = *im_width * *im_height;
+
+	double *image_real_ptr;
+	int *image_int_ptr;
+	vector<double> image;
+	switch (TYPEOF(r_image)) {
+
+		case REALSXP:
+			image_real_ptr = REAL(r_image);
+			image = vector<double>(image_real_ptr, image_real_ptr + size);
+			break;
+
+		case INTSXP:
+			image_int_ptr = INTEGER(r_image);
+			image = vector<double>(size);
+			std::copy(image_int_ptr, image_int_ptr + size, image.begin());
+			break;
+
+		default:
+			Rf_error("Image not in one of the supported formats (integer, double)");
+			image = {};
+			break;
+	}
+
 	return image;
 }
 
@@ -43,7 +59,7 @@ vector<bool> _read_mask(SEXP r_mask, unsigned int *m_width, unsigned int *m_heig
 static
 SEXP _get_list_element(SEXP list, const char *name) {
 	SEXP names = Rf_getAttrib(list, R_NamesSymbol);
-	for(unsigned int i=0; i!=Rf_length(list); i++) {
+	for(int i=0; i < Rf_length(list); i++) {
 		if( !strcmp(name, CHAR(STRING_ELT(names, i))) ) {
 			return VECTOR_ELT(list, i);
 		}
@@ -52,14 +68,17 @@ SEXP _get_list_element(SEXP list, const char *name) {
 }
 
 static
-void _read_bool(SEXP list, const char *name, unsigned int idx, bool &target) {
+void _read_bool(shared_ptr<Profile> p, SEXP list, const char *name, unsigned int idx) {
 	SEXP element = _get_list_element(list, name);
 	if( element != R_NilValue ) {
 		if( TYPEOF(element) == LGLSXP ) {
-			target = (bool)LOGICAL(element)[idx];
+			p->parameter(name, (bool)LOGICAL(element)[idx]);
 		}
 		else if( TYPEOF(element) == INTSXP ) {
-			target = (bool)INTEGER(element)[idx];
+			p->parameter(name, (bool)INTEGER(element)[idx]);
+		}
+		else if( TYPEOF(element) == REALSXP ) {
+			p->parameter(name, (bool)REAL(element)[idx]);
 		}
 		else {
 			Rf_error("Parameter %s[%u] should be of boolean or integer type", name, idx);
@@ -68,17 +87,17 @@ void _read_bool(SEXP list, const char *name, unsigned int idx, bool &target) {
 }
 
 static
-void _read_uint(SEXP list, const char *name, unsigned int idx, unsigned int &target) {
+void _read_uint(shared_ptr<Profile> p, SEXP list, const char *name, unsigned int idx) {
 	SEXP element = _get_list_element(list, name);
 	if( element != R_NilValue ) {
 		if( TYPEOF(element) == INTSXP ) {
-			target = (unsigned int)INTEGER(element)[idx];
+			p->parameter(name, (unsigned int)INTEGER(element)[idx]);
 		}
 		else if( TYPEOF(element) == LGLSXP ) {
-			target = (unsigned int)LOGICAL(element)[idx];
+			p->parameter(name, (unsigned int)LOGICAL(element)[idx]);
 		}
 		else if( TYPEOF(element) == REALSXP ) {
-			target = (unsigned int)REAL(element)[idx];
+			p->parameter(name, (unsigned int)REAL(element)[idx]);
 		}
 		else {
 			Rf_error("Parameter %s[%u] should be of numeric type", name, idx);
@@ -87,108 +106,100 @@ void _read_uint(SEXP list, const char *name, unsigned int idx, unsigned int &tar
 }
 
 static
-void _read_real(SEXP list, const char *name, unsigned int idx, double &target) {
+void _read_real(shared_ptr<Profile> p, SEXP list, const char *name, unsigned int idx) {
 	SEXP element = _get_list_element(list, name);
 	if( element != R_NilValue ) {
-		target = REAL(element)[idx];
+		p->parameter(name, REAL(element)[idx]);
 	}
 }
 
 static
-void list_to_radial(SEXP radial_list, Profile &p, unsigned int idx) {
-	RadialProfile &rp = static_cast<RadialProfile &>(p);
-	rp.adjust = true;
-	_read_real(radial_list, "xcen",  idx, rp.xcen);
-	_read_real(radial_list, "ycen",  idx, rp.ycen);
-	_read_real(radial_list, "mag",   idx, rp.mag);
-	_read_real(radial_list, "ang",   idx, rp.ang);
-	_read_real(radial_list, "axrat", idx, rp.axrat);
-	_read_real(radial_list, "box",   idx, rp.box);
+void list_to_radial(SEXP radial_list, shared_ptr<Profile> p, unsigned int idx) {
+	// p->parameter("adjust", true);
+	_read_real(p, radial_list, "xcen",  idx);
+	_read_real(p, radial_list, "ycen",  idx);
+	_read_real(p, radial_list, "mag",   idx);
+	_read_real(p, radial_list, "ang",   idx);
+	_read_real(p, radial_list, "axrat", idx);
+	_read_real(p, radial_list, "box",   idx);
 
-	_read_bool(radial_list, "rough",          idx, rp.rough);
-	_read_real(radial_list, "acc",            idx, rp.acc);
-	_read_real(radial_list, "rscale_switch",  idx, rp.rscale_switch);
-	_read_uint(radial_list, "resolution",     idx, rp.resolution);
-	_read_uint(radial_list, "max_recursions", idx, rp.max_recursions);
+	_read_bool(p, radial_list, "rough",          idx);
+	_read_bool(p, radial_list, "adjust",         idx);
+	_read_real(p, radial_list, "acc",            idx);
+	_read_real(p, radial_list, "rscale_switch",  idx);
+	_read_uint(p, radial_list, "resolution",     idx);
+	_read_uint(p, radial_list, "max_recursions", idx);
 
-	_read_real(radial_list, "rscale_max", idx, rp.rscale_max);
+	_read_real(p, radial_list, "rscale_max", idx);
 }
 
 static
-void list_to_sersic(SEXP sersic_list, Profile &p, unsigned int idx) {
+void list_to_sersic(SEXP sersic_list, shared_ptr<Profile> p, unsigned int idx) {
 	list_to_radial(sersic_list, p, idx);
-	SersicProfile &sp = static_cast<SersicProfile &>(p);
-	_read_real(sersic_list, "re",           idx, sp.re);
-	_read_real(sersic_list, "nser",         idx, sp.nser);
-	_read_bool(sersic_list, "rescale_flux", idx, sp.rescale_flux);
+	_read_real(p, sersic_list, "re",           idx);
+	_read_real(p, sersic_list, "nser",         idx);
+	_read_bool(p, sersic_list, "rescale_flux", idx);
 }
 
 static
-void list_to_moffat(SEXP moffat_list, Profile &p, unsigned int idx) {
+void list_to_moffat(SEXP moffat_list, shared_ptr<Profile> p, unsigned int idx) {
 	list_to_radial(moffat_list, p, idx);
-	MoffatProfile &mp = static_cast<MoffatProfile &>(p);
-	_read_real(moffat_list, "fwhm", idx, mp.fwhm);
-	_read_real(moffat_list, "con",  idx, mp.con);
+	_read_real(p, moffat_list, "fwhm", idx);
+	_read_real(p, moffat_list, "con",  idx);
 }
 
 static
-void list_to_ferrer(SEXP ferrer_list, Profile &p, unsigned int idx) {
+void list_to_ferrer(SEXP ferrer_list, shared_ptr<Profile> p, unsigned int idx) {
 	list_to_radial(ferrer_list, p, idx);
-	FerrerProfile &fp = static_cast<FerrerProfile &>(p);
-	_read_real(ferrer_list, "rout",  idx, fp.rout);
-	_read_real(ferrer_list, "a",     idx, fp.a);
-	_read_real(ferrer_list, "b",     idx, fp.b);
+	_read_real(p, ferrer_list, "rout",  idx);
+	_read_real(p, ferrer_list, "a",     idx);
+	_read_real(p, ferrer_list, "b",     idx);
 }
 
 static
-void list_to_coresersic(SEXP coresersic_list, Profile &p, unsigned int idx) {
+void list_to_coresersic(SEXP coresersic_list, shared_ptr<Profile> p, unsigned int idx) {
 	list_to_radial(coresersic_list, p, idx);
-	CoreSersicProfile &csp = static_cast<CoreSersicProfile &>(p);
-	_read_real(coresersic_list, "re",   idx, csp.re);
-	_read_real(coresersic_list, "rb",   idx, csp.rb);
-	_read_real(coresersic_list, "nser", idx, csp.nser);
-	_read_real(coresersic_list, "a",    idx, csp.a);
-	_read_real(coresersic_list, "b",    idx, csp.b);
+	_read_real(p, coresersic_list, "re",   idx);
+	_read_real(p, coresersic_list, "rb",   idx);
+	_read_real(p, coresersic_list, "nser", idx);
+	_read_real(p, coresersic_list, "a",    idx);
+	_read_real(p, coresersic_list, "b",    idx);
 }
 
 static
-void list_to_king(SEXP king_list, Profile &p, unsigned int idx) {
+void list_to_king(SEXP king_list, shared_ptr<Profile> p, unsigned int idx) {
 	list_to_radial(king_list, p, idx);
-	KingProfile &kp = static_cast<KingProfile &>(p);
-	_read_real(king_list, "rc", idx, kp.rc);
-	_read_real(king_list, "rt", idx, kp.rt);
-	_read_real(king_list, "a",  idx, kp.a);
+	_read_real(p, king_list, "rc", idx);
+	_read_real(p, king_list, "rt", idx);
+	_read_real(p, king_list, "a",  idx);
 }
 
 static
-void list_to_brokenexponential(SEXP brokenexponential_list, Profile &p, unsigned int idx) {
+void list_to_brokenexponential(SEXP brokenexponential_list, shared_ptr<Profile> p, unsigned int idx) {
 	list_to_radial(brokenexponential_list, p, idx);
-	BrokenExponentialProfile &bep = static_cast<BrokenExponentialProfile &>(p);
-	_read_real(brokenexponential_list, "h1", idx, bep.h1);
-	_read_real(brokenexponential_list, "h2", idx, bep.h2);
-	_read_real(brokenexponential_list, "rb", idx, bep.rb);
-	_read_real(brokenexponential_list, "a", idx, bep.a);
+	_read_real(p, brokenexponential_list, "h1", idx);
+	_read_real(p, brokenexponential_list, "h2", idx);
+	_read_real(p, brokenexponential_list, "rb", idx);
+	_read_real(p, brokenexponential_list, "a", idx);
 }
 
 static
-void list_to_sky(SEXP sky_list, Profile &p, unsigned int idx) {
-	SkyProfile &sp = static_cast<SkyProfile &>(p);
-	_read_real(sky_list, "bg", idx, sp.bg);
+void list_to_sky(SEXP sky_list, shared_ptr<Profile> p, unsigned int idx) {
+	_read_real(p, sky_list, "bg", idx);
 }
 
 static
-void list_to_psf(SEXP psf_list, Profile &p, unsigned int idx) {
-	PsfProfile &psf = static_cast<PsfProfile &>(p);
-	_read_real(psf_list, "xcen",  idx, psf.xcen);
-	_read_real(psf_list, "ycen",  idx, psf.ycen);
-	_read_real(psf_list, "mag",   idx, psf.mag);
+void list_to_psf(SEXP psf_list, shared_ptr<Profile> p, unsigned int idx) {
+	_read_real(p, psf_list, "xcen",  idx);
+	_read_real(p, psf_list, "ycen",  idx);
+	_read_real(p, psf_list, "mag",   idx);
 }
 
 
 static
 void _read_profiles(Model &model, SEXP profiles_list,
                     const char *profile_name, const char* example_property,
-                    void (*list_to_profile)(SEXP, Profile &, unsigned int)) {
+                    void (*list_to_profile)(SEXP, shared_ptr<Profile>, unsigned int)) {
 
 	/* Is the profile specified in the model? */
 	SEXP profile_list = _get_list_element(profiles_list, profile_name);
@@ -208,8 +219,8 @@ void _read_profiles(Model &model, SEXP profiles_list,
 	/* Create that many profiles and then start reading the info if available */
 	for(i=0; i!=count; i++) {
 		try {
-			Profile &p = model.add_profile(profile_name);
-			_read_bool(profile_list, "convolve", i, p.convolve);
+			shared_ptr<Profile> p = model.add_profile(profile_name);
+			_read_bool(p, profile_list, "convolve", i);
 			list_to_profile(profile_list, p, i);
 		} catch (invalid_parameter &e) {
 			ostringstream os;
@@ -262,6 +273,297 @@ void _read_psf_profiles(Model &model, SEXP profiles_list) {
 
 
 /*
+ * OpenCL-related functionality follows
+ * ----------------------------------------------------------------------------
+ */
+#ifdef PROFIT_OPENCL
+
+static
+SEXP _R_profit_openclenv_info() {
+
+	map<int, OpenCL_plat_info> clinfo;
+	try {
+		clinfo = get_opencl_info();
+	} catch (const exception &e) {
+		ostringstream os;
+		os << "Error while querying OpenCL environment: " << e.what();
+		Rf_error(os.str().c_str());
+		return R_NilValue;
+	}
+
+	unsigned int protections = 0;
+	SEXP r_platinfo_names = PROTECT(Rf_allocVector(STRSXP, 3));
+	SEXP r_devinfo_names = PROTECT(Rf_allocVector(STRSXP, 2));
+	SET_STRING_ELT(r_platinfo_names, 0, Rf_mkChar("name"));
+	SET_STRING_ELT(r_platinfo_names, 1, Rf_mkChar("opencl_version"));
+	SET_STRING_ELT(r_platinfo_names, 2, Rf_mkChar("devices"));
+	SET_STRING_ELT(r_devinfo_names, 0, Rf_mkChar("name"));
+	SET_STRING_ELT(r_devinfo_names, 1, Rf_mkChar("supports_double"));
+	protections += 2;
+
+	SEXP r_clinfo = PROTECT(Rf_allocVector(VECSXP, clinfo.size()));
+	protections += 1;
+	unsigned int plat = 0;
+	for(auto platform_info: clinfo) {
+
+		auto plat_info = std::get<1>(platform_info);
+
+		unsigned int dev = 0;
+		SEXP r_devsinfo = PROTECT(Rf_allocVector(VECSXP, plat_info.dev_info.size()));
+		protections += 1;
+		for(auto device_info: plat_info.dev_info) {
+
+			auto dev_info = std::get<1>(device_info);
+			SEXP r_double_support = PROTECT(Rf_ScalarLogical(dev_info.double_support ? TRUE : FALSE));
+			SEXP r_dev_name = PROTECT(Rf_mkString(dev_info.name.c_str()));
+			SEXP r_devinfo = PROTECT(Rf_allocVector(VECSXP, 2));
+			Rf_setAttrib(r_devinfo, R_NamesSymbol, r_devinfo_names);
+			SET_VECTOR_ELT(r_devinfo, 0, r_dev_name);
+			SET_VECTOR_ELT(r_devinfo, 1, r_double_support);
+			SET_VECTOR_ELT(r_devsinfo, dev++, r_devinfo);
+			protections += 3;
+		}
+
+		SEXP r_plat_clver = PROTECT(Rf_ScalarReal(plat_info.supported_opencl_version/100.));
+		SEXP r_plat_name = PROTECT(Rf_mkString(plat_info.name.c_str()));
+		SEXP r_platinfo = PROTECT(Rf_allocVector(VECSXP, 3));
+		Rf_setAttrib(r_platinfo, R_NamesSymbol, r_platinfo_names);
+		SET_VECTOR_ELT(r_platinfo, 0, r_plat_name);
+		SET_VECTOR_ELT(r_platinfo, 1, r_plat_clver);
+		SET_VECTOR_ELT(r_platinfo, 2, r_devsinfo);
+		protections += 3;
+
+		SET_VECTOR_ELT(r_clinfo, plat++, r_platinfo);
+	}
+
+	UNPROTECT(protections);
+	return r_clinfo;
+}
+
+struct openclenv_wrapper {
+	OpenCLEnvPtr env;
+};
+
+static
+void _R_profit_openclenv_finalizer(SEXP ptr) {
+
+	if(!R_ExternalPtrAddr(ptr)) {
+		return;
+	}
+
+	openclenv_wrapper *wrapper = reinterpret_cast<openclenv_wrapper *>(R_ExternalPtrAddr(ptr));
+	wrapper->env.reset();
+	delete wrapper;
+	R_ClearExternalPtr(ptr); /* not really needed */
+
+}
+
+static
+OpenCLEnvPtr unwrap_openclenv(SEXP openclenv) {
+
+	if( TYPEOF(openclenv) != EXTPTRSXP ) {
+		Rf_error("Given openclenv not of proper type\n");
+		return nullptr;
+	}
+
+	openclenv_wrapper *wrapper = reinterpret_cast<openclenv_wrapper *>(R_ExternalPtrAddr(openclenv));
+	if( !wrapper ) {
+		Rf_error("No OpenCL environment found in openclenv\n");
+		return nullptr;
+	}
+
+	return wrapper->env;
+}
+
+static
+SEXP _R_profit_openclenv(SEXP plat_idx, SEXP dev_idx, SEXP use_dbl) {
+
+	unsigned int platform_idx = INTEGER(plat_idx)[0];
+	unsigned int device_idx = INTEGER(dev_idx)[0];
+	bool use_double = static_cast<bool>(INTEGER(use_dbl)[0]);
+
+	OpenCLEnvPtr env;
+	try {
+		env = get_opencl_environment(platform_idx, device_idx, use_double, false);
+	} catch (const opencl_error &e) {
+		ostringstream os;
+		os << "Error while creating OpenCL environment: " << e.what();
+		Rf_error(os.str().c_str());
+		return R_NilValue;
+	} catch (const invalid_parameter &e) {
+		ostringstream os;
+		os << "Error while creating OpenCL environment, invalid parameter: " << e.what();
+		Rf_error(os.str().c_str());
+		return R_NilValue;
+	}
+
+	openclenv_wrapper *wrapper = new openclenv_wrapper();
+	wrapper->env = env;
+	SEXP r_openclenv = R_MakeExternalPtr(wrapper, Rf_install("OpenCL_env"), R_NilValue);
+	PROTECT(r_openclenv);
+	R_RegisterCFinalizerEx(r_openclenv, _R_profit_openclenv_finalizer, TRUE);
+	UNPROTECT(1);
+	return r_openclenv;
+}
+
+#else
+static
+SEXP _R_profit_openclenv_info() {
+	Rf_warning("This ProFit package was not compiled with OpenCL support\n");
+	return R_NilValue;
+}
+
+static
+SEXP _R_profit_openclenv(SEXP plat_idx, SEXP dev_idx, SEXP use_dbl) {
+	Rf_error("This ProFit package was not compiled with OpenCL support\n");
+	return R_NilValue;
+}
+#endif /* PROFIT_OPENCL */
+
+
+/*
+ * OpenMP-related functionality follows
+ * ----------------------------------------------------------------------------
+ */
+static
+SEXP _R_profit_has_openmp() {
+	return Rf_ScalarLogical(
+#ifdef PROFIT_OPENMP
+		TRUE
+#else
+		FALSE
+#endif /* PROFIT_OPENMP */
+	);
+}
+
+/*
+ * FFTW-related functionality follows
+ * ----------------------------------------------------------------------------
+ */
+static
+SEXP _R_profit_has_fftw() {
+	return Rf_ScalarLogical(
+#ifdef PROFIT_FFTW
+		TRUE
+#else
+		FALSE
+#endif /* PROFIT_FFTW */
+	);
+}
+
+/*
+ * Convolver exposure support follows
+ * ----------------------------------------------------------------------------
+ */
+struct convolver_wrapper {
+	ConvolverPtr convolver;
+};
+
+static
+void _R_profit_convolver_finalizer(SEXP ptr) {
+
+	if(!R_ExternalPtrAddr(ptr)) {
+		return;
+	}
+
+	convolver_wrapper *wrapper = reinterpret_cast<convolver_wrapper *>(R_ExternalPtrAddr(ptr));
+	wrapper->convolver.reset();
+	delete wrapper;
+	R_ClearExternalPtr(ptr); /* not really needed */
+
+}
+
+static
+ConvolverPtr unwrap_convolver(SEXP convolver)
+{
+	if( TYPEOF(convolver) != EXTPTRSXP ) {
+		Rf_error("Given convolver not of proper type\n");
+		return nullptr;
+	}
+
+	convolver_wrapper *wrapper = reinterpret_cast<convolver_wrapper *>(R_ExternalPtrAddr(convolver));
+	if (!wrapper) {
+		Rf_error("No Convolver found in convolver object");
+		return nullptr;
+	}
+
+	return wrapper->convolver;
+}
+
+static
+SEXP _R_profit_convolvers()
+{
+	static const vector<string> convolvers = {
+		"brute"
+#ifdef PROFIT_OPENCL
+		,"opencl"
+// Disabled for now as it's not ready
+//		,"opencl-local"
+#endif /* PROFIT_OPENCL */
+#ifdef PROFIT_FFTW
+		,"fft"
+#endif /* PROFIT_FFTW */
+	};
+
+	const size_t n_convolvers = convolvers.size();
+	SEXP convolvers_r = PROTECT(Rf_allocVector(STRSXP, n_convolvers));
+	for(size_t i = 0; i != n_convolvers; i++) {
+		SET_STRING_ELT(convolvers_r, i, Rf_mkChar(convolvers[i].c_str()));
+	}
+
+	UNPROTECT(1);
+	return convolvers_r;
+}
+
+static
+SEXP _R_profit_make_convolver(SEXP type, SEXP image_dimensions, SEXP psf,
+                              SEXP reuse_psf_fft, SEXP fft_effort, SEXP omp_threads,
+                              SEXP openclenv)
+{
+
+	ConvolverCreationPreferences conv_prefs;
+	conv_prefs.src_width = (unsigned int)INTEGER(image_dimensions)[0];
+	conv_prefs.src_height = (unsigned int)INTEGER(image_dimensions)[1];
+	_read_image(psf, &conv_prefs.krn_width, &conv_prefs.krn_height);
+
+#ifdef PROFIT_OPENMP
+	if( omp_threads != R_NilValue ) {
+		conv_prefs.omp_threads = (unsigned int)Rf_asInteger(omp_threads);
+	}
+#endif /* PROFIT_OPENMP */
+#ifdef PROFIT_FFTW
+	if (reuse_psf_fft != R_NilValue ) {
+		conv_prefs.reuse_krn_fft = (bool)Rf_asLogical(reuse_psf_fft);
+	}
+	if (fft_effort != R_NilValue) {
+		conv_prefs.effort = FFTPlan::effort_t((unsigned int)Rf_asInteger(fft_effort));
+	}
+#endif /* PROFIT_FFTW */
+#ifdef PROFIT_OPENCL
+	if (openclenv != R_NilValue ) {
+		if((conv_prefs.opencl_env = unwrap_openclenv(openclenv)) == nullptr) {
+			return R_NilValue;
+		}
+	}
+#endif /* PROFIT_OPENCL */
+
+	convolver_wrapper *wrapper = new convolver_wrapper();
+	std::string error;
+	try {
+		wrapper->convolver = create_convolver(CHAR(STRING_ELT(type, 0)), conv_prefs);
+	} catch (std::exception &e) {
+		Rf_error(e.what());
+		return R_NilValue;
+	}
+
+	SEXP r_convolver = R_MakeExternalPtr(wrapper, Rf_install("Convolver"), R_NilValue);
+	PROTECT(r_convolver);
+	R_RegisterCFinalizerEx(r_convolver, _R_profit_convolver_finalizer, TRUE);
+	UNPROTECT(1);
+	return r_convolver;
+}
+
+/*
  * Public exported functions follow now
  * ----------------------------------------------------------------------------
  */
@@ -275,8 +577,8 @@ SEXP _R_profit_make_model(SEXP model_list) {
 	vector<bool> mask;
 
 	SEXP dimensions = _get_list_element(model_list, "dimensions");
-	img_w = (unsigned int)REAL(dimensions)[0];
-	img_h = (unsigned int)REAL(dimensions)[1];
+	img_w = (unsigned int)INTEGER(dimensions)[0];
+	img_h = (unsigned int)INTEGER(dimensions)[1];
 
 	SEXP magzero = _get_list_element(model_list, "magzero");
 	if( magzero == R_NilValue ) {
@@ -318,6 +620,43 @@ SEXP _R_profit_make_model(SEXP model_list) {
 		}
 	}
 
+	/* A convolver, if any */
+	SEXP convolver = _get_list_element(model_list, "convolver");
+	if (convolver != R_NilValue) {
+		m.convolver = unwrap_convolver(convolver);
+		if (!m.convolver) {
+			return R_NilValue;
+		}
+	}
+
+#ifdef PROFIT_OPENCL
+	/* OpenCL environment, if any */
+	SEXP openclenv = _get_list_element(model_list, "openclenv");
+	if( openclenv != R_NilValue ) {
+
+		if( TYPEOF(openclenv) != EXTPTRSXP ) {
+			Rf_error("Given openclenv not of proper type\n");
+			return R_NilValue;
+		}
+
+		openclenv_wrapper *wrapper = reinterpret_cast<openclenv_wrapper *>(R_ExternalPtrAddr(openclenv));
+		if( !wrapper ) {
+			Rf_error("No OpenCL environment found in openclenv\n");
+			return R_NilValue;
+		}
+
+		m.opencl_env = wrapper->env;
+	}
+#endif /* PROFIT_OPENCL */
+
+#ifdef PROFIT_OPENMP
+	/* Number of OpenMP threads, if any */
+	SEXP omp_threads = _get_list_element(model_list, "omp_threads");
+	if( omp_threads != R_NilValue ) {
+		m.omp_threads = (unsigned int)Rf_asInteger(omp_threads);
+	}
+#endif /* PROFIT_OPENMP */
+
 	/* Read profiles and parameters and append them to the model */
 	SEXP profiles = _get_list_element(model_list, "profiles");
 	if( profiles == R_NilValue ) {
@@ -341,7 +680,7 @@ SEXP _R_profit_make_model(SEXP model_list) {
 	vector<double> model_image;
 	try {
 		model_image = m.evaluate();
-	} catch (invalid_parameter &e) {
+	} catch (const std::exception &e) {
 		stringstream ss;
 		ss << "Error while calculating model: " << e.what() << endl;
 		Rf_error(ss.str().c_str());
@@ -358,24 +697,32 @@ SEXP _R_profit_make_model(SEXP model_list) {
 }
 
 static
-SEXP _R_profit_convolve(SEXP r_image, SEXP r_psf, SEXP r_calc_region, SEXP r_do_calc_region) {
+SEXP _R_profit_convolve(SEXP r_convolver, SEXP r_image, SEXP r_psf, SEXP r_mask) {
 
 	unsigned int img_w, img_h, psf_w, psf_h;
 
-	vector<double> image = _read_image(r_image, &img_w, &img_h);
-	vector<double> psf = _read_image(r_psf, &psf_w, &psf_h);
-
-	vector<bool> calc_region;
-	if( Rf_asLogical(r_do_calc_region) ) {
-		unsigned int calc_w, calc_h;
-		calc_region = _read_mask(r_calc_region, &calc_w, &calc_h);
-		if( calc_w != img_w || calc_h != img_h ) {
-			Rf_error("Calc region has different dimensions than the image");
-			return R_NilValue;
-		}
+	ConvolverPtr convolver = unwrap_convolver(r_convolver);
+	if (!convolver) {
+		return R_NilValue;
 	}
 
-	image = convolve(image, img_w, img_h, psf, psf_w, psf_h, calc_region);
+	vector<double> image = _read_image(r_image, &img_w, &img_h);
+	vector<double> psf = _read_image(r_psf, &psf_w, &psf_h);
+	vector<bool> mask;
+
+	if (r_mask != R_NilValue) {
+		unsigned int calc_w, calc_h;
+		mask = _read_mask(r_mask, &calc_w, &calc_h);
+		// we already checked that dimensions are fine
+	}
+
+	Image src_image(image, img_w, img_h);
+	Image psf_image(psf, psf_w, psf_h);
+	Mask mask_image;
+	if (r_mask != R_NilValue) {
+		mask_image = Mask(mask, img_w, img_h);
+	}
+	image = convolver->convolve(src_image, psf_image, mask_image).getData();
 	SEXP ret_image = PROTECT(Rf_allocVector(REALSXP, img_w * img_h));
 	memcpy(REAL(ret_image), image.data(), sizeof(double) * img_w * img_h);
 
@@ -389,7 +736,82 @@ extern "C" {
 		return _R_profit_make_model(model_list);
 	}
 
-	SEXP R_profit_convolve(SEXP r_image, SEXP r_psf, SEXP r_calc_region, SEXP r_do_calc_region) {
-		return(_R_profit_convolve(r_image, r_psf, r_calc_region, r_do_calc_region));
+	SEXP R_profit_convolvers() {
+		return _R_profit_convolvers();
 	}
+
+	SEXP R_profit_make_convolver(SEXP type, SEXP image_dimensions, SEXP psf,
+	                             SEXP reuse_psf_fft, SEXP fft_effort, SEXP omp_threads,
+	                             SEXP openclenv) {
+		return _R_profit_make_convolver(type, image_dimensions, psf, reuse_psf_fft,
+		                                fft_effort, omp_threads, openclenv);
+	}
+
+	SEXP R_profit_convolve(SEXP convolver, SEXP r_image, SEXP r_psf, SEXP mask) {
+		return _R_profit_convolve(convolver, r_image, r_psf, mask);
+	}
+
+	SEXP R_profit_has_openmp() {
+		return _R_profit_has_openmp();
+	}
+
+	SEXP R_profit_has_fftw() {
+		return _R_profit_has_fftw();
+	}
+
+	SEXP R_profit_openclenv_info() {
+		return _R_profit_openclenv_info();
+	}
+
+	SEXP R_profit_openclenv(SEXP plat_idx, SEXP dev_idx, SEXP use_dbl) {
+		return _R_profit_openclenv(plat_idx, dev_idx, use_dbl);
+	}
+
+	/*
+	 * Defined in ProFit.cpp and generated in RcppExports.cpp
+	 * Needed here so we can register all exported symbols
+	 */
+	SEXP _ProFit_profitDownsample(SEXP, SEXP);
+	SEXP _ProFit_profitUpsample(SEXP, SEXP);
+
+	/*
+	 * Registering the methods above at module loading time
+	 * This should speed symbol lookup, and anyway it's considered a better
+	 * practice.
+	 */
+	static const R_CallMethodDef callMethods[]  = {
+
+		/* Defined in this module */
+		{"R_profit_make_model",     (DL_FUNC) &R_profit_make_model,     1},
+		{"R_profit_convolvers",     (DL_FUNC) &R_profit_convolvers,     0},
+		{"R_profit_make_convolver", (DL_FUNC) &R_profit_make_convolver, 7},
+		{"R_profit_convolve",       (DL_FUNC) &R_profit_convolve,       4},
+		{"R_profit_has_openmp",     (DL_FUNC) &R_profit_has_openmp,     0},
+		{"R_profit_has_fftw",       (DL_FUNC) &R_profit_has_fftw,       0},
+		{"R_profit_openclenv_info", (DL_FUNC) &R_profit_openclenv_info, 0},
+		{"R_profit_openclenv",      (DL_FUNC) &R_profit_openclenv,      3},
+
+		/* Defined in ProFit.cpp and generated in RcppExports.cpp */
+		{"_ProFit_profitDownsample", (DL_FUNC) &_ProFit_profitDownsample, 2},
+		{"_ProFit_profitUpsample",   (DL_FUNC) &_ProFit_profitUpsample,   2},
+
+		/* Sentinel */
+		{NULL, NULL, 0}
+	};
+
+	void R_init_ProFit(DllInfo *dll) {
+#ifdef PROFIT_FFTW
+		FFTPlan::initialize();
+#endif
+		/* Using registered symbols only from now on */
+		R_registerRoutines(dll, NULL, callMethods, NULL, NULL);
+		R_useDynamicSymbols(dll, FALSE);
+	}
+
+	void R_unload_ProFit(DllInfo *info) {
+#ifdef PROFIT_FFTW
+		FFTPlan::finalize();
+#endif
+	}
+
 }

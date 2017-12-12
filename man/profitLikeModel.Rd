@@ -11,7 +11,9 @@ This is the work-horse log-likelihood that we can use to assess the current fit.
 profitLikeModel(parm, Data, makeplots = FALSE,
 whichcomponents=list(sersic="all",moffat="all",ferrer="all",pointsource="all"),
 rough = FALSE, cmap = rev(colorRampPalette(brewer.pal(9,"RdYlBu"))(100)),
-errcmap = cmap, plotchisq = FALSE)
+errcmap = cmap, plotchisq = FALSE, maxsigma = 5,
+model=NULL, image=Data$image, sigma=Data$sigma, region=Data$region,
+like.func=Data$like.func, algo.func=Data$algo.func, verbose=Data$verbose)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -28,7 +30,7 @@ Logical; should an image be made showing the Data, model, and residuals; see \co
 A list specifying which component of each profile type should be used to create the model image. This is useful if you want to visualise the appearance of e.g. Sersic components 1 and 2 separately. The default entry list=(profilename1="all",...) will show the total model with all components added. If a given profile has no entry in the list, the default is "all", i.e. one must explicitly exclude components rather than including them, and an empty list will exclude nothing; the default value just lists available profile names explicitly.
 }
   \item{rough}{
-Logical; should an approximate model image be created. If TRUE only one evalaution of the Sersic model is made at the centre of each pixel. If FALSE then accurate upsampling is used to create more precise pixel values. It is often useful to use rough=TRUE when you are a long way from a viable solution and you are searching for a reasonable global minimum. Once near the global minimum then rough should be set to FALSE and more precise evalutions of the fit should be made. Rough fits are often pretty good and similar to the much more expensive accurate fits, except for very steep profiles.
+Logical; should an approximate model image be created. If TRUE only one evaluation of the Sersic model is made at the centre of each pixel. If FALSE then accurate upsampling is used to create more precise pixel values. It is often useful to use rough=TRUE when you are a long way from a viable solution and you are searching for a reasonable global minimum. Once near the global minimum then rough should be set to FALSE and more precise evaluations of the fit should be made. Rough fits are often pretty good and similar to the much more expensive accurate fits, except for very steep profiles.
 }
   \item{cmap}{
 The colour map to use for images if \option{makeplots} is TRUE; see \code{\link{profitMakePlots}} for details.
@@ -37,16 +39,40 @@ The colour map to use for images if \option{makeplots} is TRUE; see \code{\link{
 The colour map to use for chi-square residual images if \option{makeplots} is TRUE; see \code{\link{profitMakePlots}} for details.
 }
   \item{plotchisq}{
-  Logical flag to determine if the function should plot a map and a histogram of chi squared = (((image-optionmodel)/optionerror)[/optionregion])^2.
+  Logical flag to determine if the function should plot a map and a histogram of chi squared = (((image-\option{model})/\option{error})[/\option{region}])^2.
+}
+  \item{maxsigma}{
+The maximum range of sigma deviations displayed. Only relevant if \option{makeplots}=TRUE.  
+}
+  \item{model}{
+Matrix, optional; a model image. This will compute the likelihood for the supplied model image instead of generating a model from \option{parm} and \option{Data}, although the prior (if any) will still be computed using \option{parm}.
+}
+  \item{image}{
+Matrix; the image data to compare to. Defaults to \option{Data}$image but can be overridden.
+}
+  \item{sigma}{
+Matrix; the error map. Defaults to \option{Data}$sigma but can be overridden.
+}
+  \item{region}{
+Matrix; a map of good pixels to evaluate likelihoods for. Defaults to \option{Data}$region but can be overridden.
+}
+  \item{like.func}{
+Characters; the name of the likelihood function. Defaults to \option{Data}$like.func but can be overridden.
+}
+  \item{algo.func}{
+Characters; the name of the optimization function used (if any). Defaults to \option{Data}$algo.func but can be overridden. This changes the return values of the function.
+}
+  \item{verbose}{
+Logical; verbosity setting for output from other ProFit functions. Defaults to \option{Data}$verbose but can be overridden.
 }
 }
 \details{
-While this function is designed to produce the required outputs for different optimisation schemes (optim, LaplaceApproximation, LaplacesDemon and CMA have been used successfully) the side effect of producing the model image is quite useful for protyping.
+While this function is designed to produce the required outputs for different optimisation schemes (optim, LaplaceApproximation, LaplacesDemon and CMA have been used successfully) the side effect of producing the model image is quite useful for prototyping.
 }
 \value{
 Option dependent output, either a Scalar or a List.
 
-\code{profitLikeModel} uses the value of Data$algo.func to determine the type of output generated (see \code{\link{profitSetupData}} for details). If this flag is set to either "optim" or "CMA" then it will output the log-likelihood as a single scalar value. If set to "LA" or "LD" then a more complex list structure as expected by \code{\link{LaplaceApproximation}} and \code{\link{LaplacesDemon}} (see details for these functions). In practice the simple log-likelihood scalar output as given by setting to "optim" or "CMA" is useful for a large number of maximisation algortithms available within R. If an empty string is given, the function will simply return the model and PSF image.
+\code{profitLikeModel} uses the value of Data$algo.func to determine the type of output generated (see \code{\link{profitSetupData}} for details). If this flag is set to either "optim" or "CMA" then it will output the log-likelihood as a single scalar value. If set to "LA" or "LD" then a more complex list structure as expected by \code{\link{LaplaceApproximation}} and \code{\link{LaplacesDemon}} (see details for these functions). In practice the simple log-likelihood scalar output as given by setting to "optim" or "CMA" is useful for a large number of maximisation algorithms available within R. If an empty string is given, the function will simply return the model and PSF image.
 }
 
 \author{
@@ -76,8 +102,6 @@ print(ExampleIDs)
 useID=ExampleIDs[1]
 
 image = readFITS(system.file("extdata", paste(datasource,'/',useID,'fitim.fits',sep=''),
-package="ProFit"))$imDat
-mask = readFITS(system.file("extdata", paste(datasource,'/',useID,'mskim.fits',sep=''),
 package="ProFit"))$imDat
 sigma = readFITS(system.file("extdata", paste(datasource,'/',useID,'sigma.fits',sep=''),
 package="ProFit"))$imDat
@@ -150,10 +174,10 @@ tolog=list(
 
 # Setup the minimal data structure we need for likelihood.
 
-Data=profitSetupData(image=image, mask=mask, sigma=sigma, segim=segim, psf=psf,
+Data=profitSetupData(image=image, sigma=sigma, segim=segim, psf=psf,
 modellist=modellist, tofit=tofit, tolog=tolog, magzero=0, algo.func='optim', verbose=TRUE)
 
-# Finally, calcualte the likelihood and make a plot:
+# Finally, calculate the likelihood and make a plot:
 
 profitLikeModel(parm=Data$init, Data=Data, makeplots=TRUE)
 }

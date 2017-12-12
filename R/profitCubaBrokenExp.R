@@ -6,13 +6,18 @@
 }
 
 .profitBrokenExp=function(r=1, h1=1, h2=1, rb=1, a=1){
-  inten = exp(-r/h1)*(1+exp(a*(r-rb)))^((1/a)*(1/h1-1/h2))
+  base = (r-rb)
+  expo = (1/h1-1/h2)
+  expterm = base
+  cond = base < 40/a
+  expterm[cond] = log(1+exp(a*base[cond]))/a
+  inten = exp(-r/h1 + expo*expterm)
   return(inten)
 }
 
 .profitBrokenExpR=function(r=1, h1=1, h2=1, rb=1, a=1){
-  inten = exp(-r/h1)*(1+exp(a*(r-rb)))^((1/a)*(1/h1-1/h2))
-  return(r*inten)
+  inten = r*.profitBrokenExp(r=r,h1=h1,h2=h2,rb=rb,a=a)
+  return(inten)
 }
 
 .profitBrokenExpXY=function(args=c(0,0), xcen=0, ycen=0, h1=1, h2=1, rb=1, a=1, ang=0, axrat=1, box=0){
@@ -36,7 +41,7 @@ profitRadialBrokenExp=function(r=1, mag=15, h1=1, h2=h1, rb=h1, a=1, ang=0, axra
           .profitBrokenExpScale(mag=mag, h1=h1, h2=h2, rb=rb, a=a, axrat=axrat, box=box)
 }
 
-profitCubaBrokenExp=function(xcen=dim[1]/2, ycen=dim[2]/2, mag=15, h1=1, h2=h1, rb=h1, a=1, ang=0, axrat=1, box=0, dim=c(25,25), rel.tol=1e-3, abs.tol= 1e-10){
+profitCubaBrokenExp=function(xcen=dim[1]/2, ycen=dim[2]/2, mag=15, h1=1, h2=h1, rb=h1, a=1, ang=0, axrat=1, box=0, dim=c(25,25), rel.tol=1e-3, abs.tol= 1e-10, plot=FALSE, ...){
   xpix=0:(dim[1]-1)
   ypix=0:(dim[2]-1)
   pixgrid=expand.grid(xpix,ypix)
@@ -44,5 +49,11 @@ profitCubaBrokenExp=function(xcen=dim[1]/2, ycen=dim[2]/2, mag=15, h1=1, h2=h1, 
   for(i in 1:length(pixgrid[,1])){
     pixval=c(pixval, .profitBrokenExpExactSumPix(c(pixgrid[i,1],pixgrid[i,1]+1), c(pixgrid[i,2],pixgrid[i,2]+1), xcen=xcen, ycen=ycen, h1=h1, h2=h2, rb=rb, a=a, ang=ang, axrat=axrat, box=box, rel.tol= rel.tol, abs.tol= abs.tol))
   }
-  return=matrix(pixval*.profitBrokenExpScale(mag=mag, h1=h1, h2=h2, rb=rb, a=a, axrat=axrat, box=box),dim[1],dim[2])
+  output=matrix(pixval*.profitBrokenExpScale(mag=mag, h1=h1, h2=h2, rb=rb, a=a, axrat=axrat, box=box),dim[1],dim[2])
+  
+  if(plot){
+	  magimage(output, ...)
+  }
+  
+  return=output
 }

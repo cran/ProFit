@@ -28,8 +28,11 @@
 #include <functional>
 #include <limits>
 #include <numeric>
+#include <stdexcept>
 #include <vector>
 
+#include "profit/common.h"
+#include "profit/config.h"
 #include "profit/utils.h"
 
 /*
@@ -37,11 +40,12 @@
  * beta, gamma and pgamma and qgamma functions needed by some profiles.
  * If neither is given the compilation should fail
  */
-#if defined(HAVE_GSL)
+#if defined(PROFIT_USES_GSL)
+	#include <gsl/gsl_errno.h>
 	#include <gsl/gsl_cdf.h>
 	#include <gsl/gsl_sf_gamma.h>
 	#include <gsl/gsl_integration.h>
-#elif defined(HAVE_R)
+#elif defined(PROFIT_USES_R)
 	#include <Rmath.h>
 	#include <R_ext/Applic.h>
 
@@ -78,26 +82,17 @@
 	#error("No high-level library (GSL or R) provided")
 #endif
 
-using namespace std;
 
 namespace profit {
 
-void add_images(vector<double> &dest, const vector<double> &src) {
-	transform(src.begin(), src.end(), dest.begin(), dest.begin(), std::plus<double>());
-}
-
-void normalize(vector<double> &image) {
-	double sum = accumulate(image.begin(), image.end(), 0);
-	if( sum == 0 ) {
-		return;
-	}
-	transform(image.begin(), image.end(), image.begin(), [=](double x) {return x/sum;});
+bool almost_equals(double x, double y, double e) {
+	return std::abs(x - y) < std::abs(e);
 }
 
 /*
  * GSL-based functions
  */
-#if defined(HAVE_GSL)
+#if defined(PROFIT_USES_GSL)
 double qgamma(double p, double shape) {
 	return gsl_cdf_gamma_Pinv(p, shape, 1);
 }
@@ -107,14 +102,41 @@ double pgamma(double q, double shape) {
 }
 
 double gammafn(double x) {
-	if( x > GSL_SF_GAMMA_XMAX ) {
-		return numeric_limits<double>::infinity();
+
+	gsl_sf_result result;
+	int status = gsl_sf_gamma_e(x, &result);
+	if( status ) {
+		if( status == GSL_EUNDRFLW ) {
+			return 0.;
+		}
+		else if( status == GSL_EOVRFLW && x > 0 ) {
+			return std::numeric_limits<double>::infinity();
+		}
+		return std::numeric_limits<double>::quiet_NaN();
 	}
-	return gsl_sf_gamma(x);
+
+	return result.val;
 }
 
 double beta(double a, double b) {
-	return gsl_sf_beta(a, b);
+
+	if( a < 0. || b < 0. ) {
+		return std::numeric_limits<double>::quiet_NaN();
+	}
+	if( a == 0. || b == 0. ) {
+		return std::numeric_limits<double>::infinity();
+	}
+
+	gsl_sf_result result;
+	int status = gsl_sf_beta_e(a, b, &result);
+	if( status ) {
+		if( status == GSL_EUNDRFLW ) {
+			return 0.;
+		}
+		return std::numeric_limits<double>::quiet_NaN();
+	}
+
+	return result.val;
 }
 
 static
@@ -151,7 +173,7 @@ double integrate_qags(integration_func_t f, double a, double b, void *params) {
 /*
  * R-based functions
  */
-#elif defined(HAVE_R)
+#elif defined(PROFIT_USES_R)
 
 double qgamma(double p, double shape) {
 	return ::Rf_qgamma(p, shape, 1, 1, 0);
@@ -189,8 +211,8 @@ double __r_integrate_qag(integration_func_t f, void *params,
 	int neval, ier, last;
 	int limit = 100;
 	int lenw = 4 * limit;
-	vector<int> iwork(limit);
-	vector<double> work(lenw);
+	std::vector<int> iwork(limit);
+	std::vector<double> work(lenw);
 	double result, abserr;
 	double epsabs = 1e-4, epsrel = 1e-4;
 	struct __r_integrator_args int_args = {f, params};

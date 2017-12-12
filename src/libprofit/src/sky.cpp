@@ -26,9 +26,10 @@
 
 #include <vector>
 
+#include "profit/common.h"
+#include "profit/model.h"
 #include "profit/sky.h"
 
-using namespace std;
 
 namespace profit {
 
@@ -37,7 +38,7 @@ void SkyProfile::validate() {
 	return;
 }
 
-void SkyProfile::evaluate(vector<double> &image) {
+void SkyProfile::evaluate(std::vector<double> &image) {
 
 	/* In case we need to mask some pixels out */
 	auto mask_it = model.calcmask.begin();
@@ -56,11 +57,25 @@ void SkyProfile::evaluate(vector<double> &image) {
 	}
 }
 
-SkyProfile::SkyProfile(const Model &model) :
-	Profile(model),
+SkyProfile::SkyProfile(const Model &model, const std::string &name) :
+	Profile(model, name),
 	bg(0.)
 {
 	// no-op
+}
+
+bool SkyProfile::parameter_impl(const std::string &name, double val) {
+
+	if( Profile::parameter_impl(name, val) ) {
+		return true;
+	}
+
+	if( name == "bg" ) {
+		this->bg = val;
+		return true;
+	}
+
+	return false;
 }
 
 } /* namespace profit */

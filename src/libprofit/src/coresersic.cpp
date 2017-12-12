@@ -26,10 +26,11 @@
 
 #include <cmath>
 
+#include "profit/common.h"
 #include "profit/coresersic.h"
+#include "profit/exceptions.h"
 #include "profit/utils.h"
 
-using namespace std;
 
 namespace profit
 {
@@ -47,36 +48,16 @@ namespace profit
  *           r = (x^{2+B} + y^{2+B})^{1/(2+B)}
  *           B = box parameter
  */
-static
-double _coresersic_for_xy_r(const RadialProfile &sp,
-                            double x, double y,
-                            double r, bool reuse_r) {
+double CoreSersicProfile::evaluate_at(double x, double y) const {
 
-	const CoreSersicProfile &csp = static_cast<const CoreSersicProfile &>(sp);
+	using std::abs;
+	using std::exp;
+	using std::pow;
 
-	if( csp.box == 0 && !reuse_r ) {
-		r = sqrt(x*x + y*y);
-	}
-	else if( csp.box != 0 ){
-		double box = csp.box + 2.;
-		r = pow( pow(abs(x), box) + pow(abs(y), box), 1./box);
-	}
-	// else csp.box == 0 && reuse_r, so we leave r untouched
-
-	double rb = csp.rb;
-	double a = csp.a;
-	double b = csp.b;
-	double bn = csp._bn;
-	double re = csp.re;
-	double nser = csp.nser;
-
+	double box = this->box + 2.;
+	double r = pow( pow(abs(x), box) + pow(abs(y), box), 1./box);
 	return pow(1 + pow(r/rb,-a), b/a) *
-	       exp(-bn * pow((pow(r, a) + pow(rb, a))/pow(re,a), 1/(nser*a)));
-
-}
-
-eval_function_t CoreSersicProfile::get_evaluation_function() {
-	return &_coresersic_for_xy_r;
+	       exp(-_bn * pow((pow(r, a) + pow(rb, a))/pow(re,a), 1/(nser*a)));
 }
 
 void CoreSersicProfile::validate() {
@@ -101,19 +82,14 @@ void CoreSersicProfile::validate() {
 
 }
 
-static
-double coresersic_int(double r, void *ex) {
-	CoreSersicProfile *csp = (CoreSersicProfile *)ex;
-	double rb = csp->rb;
-	double a = csp->a;
-	double b = csp->b;
-	double bn = csp->_bn;
-	double re = csp->re;
-	double nser = csp->nser;
-	return r * pow(1 + pow(r/rb,-a), b/a) *
-	       exp(-bn * pow((pow(r, a) + pow(rb, a))/pow(re,a), 1/(nser*a)));
-}
+double CoreSersicProfile::integrate_at(double r) const {
 
+	using std::exp;
+	using std::pow;
+
+	return r * pow(1 + pow(r/rb,-a), b/a) *
+	       exp(-_bn * pow((pow(r, a) + pow(rb, a))/pow(re,a), 1/(nser*a)));
+}
 
 double CoreSersicProfile::get_lumtot(double r_box) {
 
@@ -121,7 +97,11 @@ double CoreSersicProfile::get_lumtot(double r_box) {
 	 * We numerically integrate r from 0 to infinity
 	 * to get the total luminosity
 	 */
-	double magtot = integrate_qagi(&coresersic_int, 0, this);
+	auto int_f = [](double r, void *ctx){
+		CoreSersicProfile *p = static_cast<CoreSersicProfile *>(ctx);
+		return p->integrate_at(r);
+	};
+	double magtot = integrate_qagi(int_f, 0, this);
 	return 2 * M_PI * axrat * magtot/r_box;
 }
 
@@ -154,11 +134,49 @@ double CoreSersicProfile::adjust_acc() {
 	return this->acc;
 }
 
-CoreSersicProfile::CoreSersicProfile(const Model &model) :
-	RadialProfile(model),
+CoreSersicProfile::CoreSersicProfile(const Model &model, const std::string &name) :
+	RadialProfile(model, name),
 	re(1), rb(1), nser(4), a(1), b(1)
 {
 	// no-op
 }
+bool CoreSersicProfile::parameter_impl(const std::string &name, double val) {
+
+	if( RadialProfile::parameter_impl(name, val) ) {
+		return true;
+	}
+
+	if( name == "re" )        { re = val; }
+	else if( name == "rb" )   { rb = val; }
+	else if( name == "nser" ) { nser = val; }
+	else if( name == "a" )    { a = val; }
+	else if( name == "b" )    { b = val; }
+	else {
+		return false;
+	}
+
+	return true;
+}
+
+#ifdef PROFIT_OPENCL
+void CoreSersicProfile::add_kernel_parameters_float(unsigned int index, cl::Kernel &kernel) const {
+	add_kernel_parameters<float>(index, kernel);
+}
+
+void CoreSersicProfile::add_kernel_parameters_double(unsigned int index, cl::Kernel &kernel) const {
+	add_kernel_parameters<double>(index, kernel);
+}
+
+template <typename FT>
+void CoreSersicProfile::add_kernel_parameters(unsigned int index, cl::Kernel &kernel) const {
+	kernel.setArg(index++, static_cast<FT>(re));
+	kernel.setArg(index++, static_cast<FT>(rb));
+	kernel.setArg(index++, static_cast<FT>(nser));
+	kernel.setArg(index++, static_cast<FT>(a));
+	kernel.setArg(index++, static_cast<FT>(b));
+	kernel.setArg(index++, static_cast<FT>(_bn));
+}
+
+#endif /* PROFIT_OPENCL */
 
 } /* namespace profit */
