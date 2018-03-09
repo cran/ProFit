@@ -12,7 +12,7 @@
 
 <meta name="author" content="Aaron Robotham &amp; Rodrigo Tobar" />
 
-<meta name="date" content="2017-12-12" />
+<meta name="date" content="2018-03-09" />
 
 <title>ProFit: OpenCL and OpenMP Support</title>
 
@@ -70,10 +70,13 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">ProFit: OpenCL and OpenMP Support</h1>
 <h4 class="author"><em>Aaron Robotham &amp; Rodrigo Tobar</em></h4>
-<h4 class="date"><em>2017-12-12</em></h4>
+<h4 class="date"><em>2018-03-09</em></h4>
 
 
 
+<p>Get the latest version of <strong>ProFit</strong>:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(devtools)
+<span class="kw">install_github</span>(<span class="st">'ICRAR/ProFit'</span>)</code></pre></div>
 <p>First load the libraries we need:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(ProFit)</code></pre></div>
 <div id="opencl-support" class="section level1">
@@ -88,7 +91,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
     <span class="dt">nser=</span><span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">10</span>),
     <span class="dt">ang=</span><span class="kw">c</span>(<span class="dv">46</span>, <span class="dv">80</span>),
     <span class="dt">axrat=</span><span class="kw">c</span>(<span class="fl">0.4</span>, <span class="fl">0.6</span>),
-    <span class="dt">box=</span><span class="kw">c</span>(<span class="fl">0.5</span>,-<span class="fl">0.5</span>)
+    <span class="dt">box=</span><span class="kw">c</span>(<span class="fl">0.5</span>,<span class="op">-</span><span class="fl">0.5</span>)
   ),
   <span class="dt">pointsource=</span><span class="kw">list</span>(
     <span class="dt">xcen=</span><span class="kw">c</span>(<span class="dv">34</span>,<span class="dv">10</span>,<span class="dv">150</span>),
@@ -111,8 +114,8 @@ tempCL=<span class="kw">profitOpenCLEnv</span>()
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">system.time</span>(<span class="kw">profitMakeModel</span>(<span class="dt">modellist=</span>modellist, <span class="dt">dim=</span><span class="kw">c</span>(<span class="dv">2000</span>,<span class="dv">2000</span>), <span class="dt">openclenv=</span>tempCL))
 <span class="kw">system.time</span>(<span class="kw">profitMakeModel</span>(<span class="dt">modellist=</span>modellist, <span class="dt">dim=</span><span class="kw">c</span>(<span class="dv">2000</span>,<span class="dv">2000</span>), <span class="dt">openclenv=</span>{}))</code></pre></div>
 <p>Next 100 smaller images:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">system.time</span>(for(i in <span class="dv">1</span>:<span class="dv">100</span>){<span class="kw">profitMakeModel</span>(<span class="dt">modellist=</span>modellist, <span class="dt">dim=</span><span class="kw">c</span>(<span class="dv">200</span>,<span class="dv">200</span>), <span class="dt">openclenv=</span>tempCL)})
-<span class="kw">system.time</span>(for(i in <span class="dv">1</span>:<span class="dv">100</span>){<span class="kw">profitMakeModel</span>(<span class="dt">modellist=</span>modellist, <span class="dt">dim=</span><span class="kw">c</span>(<span class="dv">200</span>,<span class="dv">200</span>), <span class="dt">openclenv=</span>{})})</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">system.time</span>(<span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="dv">100</span>){<span class="kw">profitMakeModel</span>(<span class="dt">modellist=</span>modellist, <span class="dt">dim=</span><span class="kw">c</span>(<span class="dv">200</span>,<span class="dv">200</span>), <span class="dt">openclenv=</span>tempCL)})
+<span class="kw">system.time</span>(<span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="dv">100</span>){<span class="kw">profitMakeModel</span>(<span class="dt">modellist=</span>modellist, <span class="dt">dim=</span><span class="kw">c</span>(<span class="dv">200</span>,<span class="dv">200</span>), <span class="dt">openclenv=</span>{})})</code></pre></div>
 <p>On my (ASGR’s) MacBook Pro circa 2012 with a quad 2.6 GHz Intel Core i7 CPU and a NVIDIA GeForce GT 650M 1024 MB GPU I see a speed up of a factor ~3.5 for the first example (a single big image) and ~4 for the second example (looped smaller images).</p>
 </div>
 </div>
@@ -190,8 +193,8 @@ LDFLAGS = -L/usr/local/Cellar/llvm/4.0.0/lib -Wl,-rpath,/usr/local/Cellar/llvm/4
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">system.time</span>(<span class="kw">profitMakeModel</span>(<span class="dt">modellist=</span>modellist, <span class="dt">dim=</span><span class="kw">c</span>(<span class="dv">2000</span>,<span class="dv">2000</span>)))
 <span class="kw">system.time</span>(<span class="kw">profitMakeModel</span>(<span class="dt">modellist=</span>modellist, <span class="dt">dim=</span><span class="kw">c</span>(<span class="dv">2000</span>,<span class="dv">2000</span>), <span class="dt">omp_threads=</span><span class="dv">4</span>))</code></pre></div>
 <p>Next 100 smaller images:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">system.time</span>(for(i in <span class="dv">1</span>:<span class="dv">100</span>){<span class="kw">profitMakeModel</span>(<span class="dt">modellist=</span>modellist, <span class="dt">dim=</span><span class="kw">c</span>(<span class="dv">200</span>,<span class="dv">200</span>))})
-<span class="kw">system.time</span>(for(i in <span class="dv">1</span>:<span class="dv">100</span>){<span class="kw">profitMakeModel</span>(<span class="dt">modellist=</span>modellist, <span class="dt">dim=</span><span class="kw">c</span>(<span class="dv">200</span>,<span class="dv">200</span>), <span class="dt">omp_threads=</span><span class="dv">4</span>)})</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">system.time</span>(<span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="dv">100</span>){<span class="kw">profitMakeModel</span>(<span class="dt">modellist=</span>modellist, <span class="dt">dim=</span><span class="kw">c</span>(<span class="dv">200</span>,<span class="dv">200</span>))})
+<span class="kw">system.time</span>(<span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="dv">100</span>){<span class="kw">profitMakeModel</span>(<span class="dt">modellist=</span>modellist, <span class="dt">dim=</span><span class="kw">c</span>(<span class="dv">200</span>,<span class="dv">200</span>), <span class="dt">omp_threads=</span><span class="dv">4</span>)})</code></pre></div>
 <p>On my (ASGR’s) MacBook Pro circa 2012 with a quad 2.6 GHz Intel Core i7 CPU I see a speed up of a factor ~2.5 for the first example (a single big image) and ~4 for the second example (looped smaller images).</p>
 </div>
 </div>
@@ -202,8 +205,8 @@ LDFLAGS = -L/usr/local/Cellar/llvm/4.0.0/lib -Wl,-rpath,/usr/local/Cellar/llvm/4
 <span class="kw">library</span>(foreach)
 <span class="kw">registerDoParallel</span>(<span class="dt">cores=</span><span class="dv">4</span>)</code></pre></div>
 <p>Again, for 100 smaller images:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">system.time</span>(<span class="kw">foreach</span>(<span class="dt">i=</span><span class="dv">1</span>:<span class="dv">100</span>)%do%{<span class="kw">profitMakeModel</span>(<span class="dt">modellist=</span>modellist, <span class="dt">dim=</span><span class="kw">c</span>(<span class="dv">200</span>,<span class="dv">200</span>))})
-<span class="kw">system.time</span>(<span class="kw">foreach</span>(<span class="dt">i=</span><span class="dv">1</span>:<span class="dv">100</span>)%dopar%{<span class="kw">profitMakeModel</span>(<span class="dt">modellist=</span>modellist, <span class="dt">dim=</span><span class="kw">c</span>(<span class="dv">200</span>,<span class="dv">200</span>))})</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">system.time</span>(<span class="kw">foreach</span>(<span class="dt">i=</span><span class="dv">1</span><span class="op">:</span><span class="dv">100</span>)<span class="op">%do%</span>{<span class="kw">profitMakeModel</span>(<span class="dt">modellist=</span>modellist, <span class="dt">dim=</span><span class="kw">c</span>(<span class="dv">200</span>,<span class="dv">200</span>))})
+<span class="kw">system.time</span>(<span class="kw">foreach</span>(<span class="dt">i=</span><span class="dv">1</span><span class="op">:</span><span class="dv">100</span>)<span class="op">%dopar%</span>{<span class="kw">profitMakeModel</span>(<span class="dt">modellist=</span>modellist, <span class="dt">dim=</span><span class="kw">c</span>(<span class="dv">200</span>,<span class="dv">200</span>))})</code></pre></div>
 <p>On my (ASGR’s) MacBook Pro circa 2012 with a quad 2.6 GHz Intel Core i7 CPU I again see a speed up of a factor ~4.</p>
 <p>Depending on your use case any of the three strategies might be most sensible. For fitting a single object you will get the most speed-up from using OpenCL or OpenMP. For fitting a large number of galaxies running an embarrassingly parallel <strong>foreach</strong> loop should offer a similar speed-up to OpenMP using the same number of cores, but it will use much more memory (<strong>foreach</strong> effectively copies the session for each core, which produces additional overheads).</p>
 </div>

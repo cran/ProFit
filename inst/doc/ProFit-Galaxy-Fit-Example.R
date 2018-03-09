@@ -1,7 +1,10 @@
+## ---- eval=FALSE---------------------------------------------------------
+#  library(devtools)
+#  install_github('ICRAR/ProFit')
+
 ## ------------------------------------------------------------------------
-library(knitr)
 library(ProFit)
-library(FITSio)
+library(knitr)
 
 ## ------------------------------------------------------------------------
 data('ExampleInit', package="ProFit")
@@ -153,8 +156,9 @@ profitLikeModel(parm=Data$init, Data=Data, makeplots=TRUE)
 
 ## ---- eval=FALSE---------------------------------------------------------
 #  sigmas=c(2,2,2,2,5,5,1,1,1,1,30,30,0.3,0.3)
-#  optimfit=optim(Data$init, profitLikeModel, method='BFGS', Data=Data,
-#  control=list(fnscale=-1,parscale=sigmas[which(unlist(tofit))]))
+#  print(system.time(optimfit <- optim(Data$init, profitLikeModel, method='BFGS', Data=Data,
+#    control=list(fnscale=-1,parscale=sigmas[which(unlist(tofit))]))))
+#  print(optimfit$value)
 
 ## ---- eval=FALSE---------------------------------------------------------
 #  optimfit$par
@@ -178,10 +182,36 @@ constraints=function(modellist){
 Data$constraints=constraints
 
 ## ---- eval=FALSE---------------------------------------------------------
-#  library(LaplacesDemon)
-#  Data$algo.func="LA"
-#  LAfit=LaplaceApproximation(profitLikeModel, parm=Data$init, Data=Data, Iterations=1e3,
-#                             Method='LM', CovEst='Identity', sir=FALSE)
+#  if(isTRUE("nloptr" %in% rownames(installed.packages())))
+#  {
+#    library(nloptr)
+#    intervals = unlist(Data$intervals)
+#    tofit = unlist(Data$tofit)
+#    npar = length(tofit)
+#  
+#    whichfit = which(tofit)
+#    whichfitlog = which(unlist(Data$tolog)[whichfit])
+#    lower = intervals[2*(1:npar)-1][whichfit]
+#    upper = intervals[2*(1:npar)][whichfit]
+#  
+#    system.time(nloptfit <- nloptr(
+#      x0 = Data$init, eval_f=function(x,Data) { return(-profitLikeModel(x,Data=Data))}, lb = lower, ub = upper,
+#      opts=list(algorithm=paste0("NLOPT_LN_NELDERMEAD"),xtol_rel=0,ftol_abs=1e-3,maxeval=2e3), Data=Data))
+#    print(-nloptfit$objective)
+#  }
+
+## ---- eval=FALSE---------------------------------------------------------
+#  if(isTRUE("LaplacesDemon" %in% rownames(installed.packages())))
+#  {
+#    library(LaplacesDemon)
+#    Data$algo.func="LA"
+#    system.time(LAfit <- LaplaceApproximation(profitLikeModel, parm=Data$init, Data=Data, Iterations=1e3,
+#      Method='LM', CovEst='Identity', sir=FALSE))
+#    print(LAfit$LP.Final)
+#    system.time(LAfitnm <- LaplaceApproximation(profitLikeModel, parm=Data$init, Data=Data, Iterations=1e3,
+#      Method='NM', CovEst='Identity', sir=FALSE))
+#    print(LAfitnm$LP.Final)
+#  }
 
 ## ---- eval=FALSE---------------------------------------------------------
 #  LAfit$Summary1[,1]
@@ -199,14 +229,17 @@ Data$constraints=constraints
 #  install_github('taranu/cmaeshpc')
 
 ## ---- eval=FALSE---------------------------------------------------------
-#  library(cmaeshpc)
-#  Data$algo.func="CMA"
-#  sigmas=c(2,2,2,2,5,5,1,1,1,1,30,30,0.3,0.3)
-#  cmasigma=sigmas[which(unlist(tofit) == TRUE)]/3
-#  cmafit=cmaeshpc(Data$init, profitLikeModel, Data=Data, control=list(maxit=1e3,
-#    fnscale=-1.0, sigma=cmasigma, diag.sigma=TRUE, diag.eigen=TRUE, diag.pop=TRUE,
-#    diag.value=TRUE, maxwalltime=Inf, trace=TRUE, stopfitness=0, stop.tolx=1e-3*cmasigma))
-#  profitLikeModel(cmafit$par,Data,makeplots=TRUE)
+#  if(isTRUE("cmaeshpc" %in% rownames(installed.packages())))
+#  {
+#    library(cmaeshpc)
+#    Data$algo.func="CMA"
+#    sigmas=c(2,2,2,2,5,5,1,1,1,1,30,30,0.3,0.3)
+#    cmasigma=sigmas[which(unlist(tofit) == TRUE)]/3
+#    cmafit=cmaeshpc(Data$init, profitLikeModel, Data=Data, control=list(maxit=1e3,
+#      fnscale=-1.0, sigma=cmasigma, diag.sigma=TRUE, diag.eigen=TRUE, diag.pop=TRUE,
+#      diag.value=TRUE, maxwalltime=Inf, trace=TRUE, stopfitness=0, stop.tolx=1e-3*cmasigma))
+#    profitLikeModel(cmafit$par,Data,makeplots=TRUE)
+#  }
 
 ## ---- eval=FALSE---------------------------------------------------------
 #  Data$algo.func="LD"

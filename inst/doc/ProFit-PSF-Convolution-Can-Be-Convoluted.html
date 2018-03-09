@@ -12,7 +12,7 @@
 
 <meta name="author" content="Dan Taranu" />
 
-<meta name="date" content="2017-12-12" />
+<meta name="date" content="2018-03-09" />
 
 <title>ProFit: PSF Convolution Can Be Convoluted</title>
 
@@ -70,21 +70,23 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">ProFit: PSF Convolution Can Be Convoluted</h1>
 <h4 class="author"><em>Dan Taranu</em></h4>
-<h4 class="date"><em>2017-12-12</em></h4>
+<h4 class="date"><em>2018-03-09</em></h4>
 
 
 
+<p>Get the latest version of <strong>ProFit</strong>:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(devtools)
+<span class="kw">install_github</span>(<span class="st">'ICRAR/ProFit'</span>)</code></pre></div>
+<p>First load the libraries we need:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(ProFit)</code></pre></div>
 <div id="prepare-the-test-data" class="section level2">
 <h2>Prepare the test data</h2>
-<p>First load the libraries we need:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(knitr)
-<span class="kw">library</span>(ProFit)</code></pre></div>
 <p>Make a PSF and convolve it with itself:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fwhm.psf =<span class="st"> </span><span class="dv">3</span>
-dim =<span class="st"> </span><span class="kw">rep</span>(<span class="kw">ceiling</span>(fwhm.psf*<span class="dv">10</span>),<span class="dv">2</span>)
-dim =<span class="st"> </span>dim +<span class="st"> </span>(<span class="dv">1</span>-(dim %%<span class="st"> </span><span class="dv">2</span>))
+dim =<span class="st"> </span><span class="kw">rep</span>(<span class="kw">ceiling</span>(fwhm.psf<span class="op">*</span><span class="dv">10</span>),<span class="dv">2</span>)
+dim =<span class="st"> </span>dim <span class="op">+</span><span class="st"> </span>(<span class="dv">1</span><span class="op">-</span>(dim <span class="op">%%</span><span class="st"> </span><span class="dv">2</span>))
 <span class="co"># More accurate than profitMakeGaussianPSF, just slower</span>
-psf =<span class="st"> </span><span class="kw">profitCubaSersic</span>(<span class="dt">mag=</span><span class="dv">0</span>,<span class="dt">re=</span>fwhm.psf/<span class="dv">2</span>,<span class="dt">nser=</span><span class="fl">0.5</span>,<span class="dt">dim=</span>dim)
+psf =<span class="st"> </span><span class="kw">profitCubaSersic</span>(<span class="dt">mag=</span><span class="dv">0</span>,<span class="dt">re=</span>fwhm.psf<span class="op">/</span><span class="dv">2</span>,<span class="dt">nser=</span><span class="fl">0.5</span>,<span class="dt">dim=</span>dim)
 <span class="kw">print</span>(<span class="kw">sum</span>(psf))</code></pre></div>
 <pre><code>## [1] 1</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fwhm.srcs =<span class="st"> </span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">9</span>)
@@ -92,9 +94,9 @@ refsrcidx =<span class="st"> </span><span class="dv">2</span>
 nsrcs =<span class="st"> </span><span class="kw">length</span>(fwhm.srcs)
 src =<span class="st"> </span><span class="kw">list</span>()
 conv =<span class="st"> </span><span class="kw">list</span>()
-for(i in <span class="dv">1</span>:nsrcs) 
+<span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>nsrcs) 
 {
-  src[[i]] =<span class="st"> </span><span class="kw">profitCubaSersic</span>(<span class="dt">mag=</span><span class="dv">0</span>,<span class="dt">re=</span>fwhm.srcs[i]/<span class="dv">2</span>,<span class="dt">nser=</span><span class="fl">0.5</span>,<span class="dt">dim=</span>dim)
+  src[[i]] =<span class="st"> </span><span class="kw">profitCubaSersic</span>(<span class="dt">mag=</span><span class="dv">0</span>,<span class="dt">re=</span>fwhm.srcs[i]<span class="op">/</span><span class="dv">2</span>,<span class="dt">nser=</span><span class="fl">0.5</span>,<span class="dt">dim=</span>dim)
   conv[[i]] =<span class="st"> </span><span class="kw">profitConvolvePSF</span>(src[[i]], psf)
   <span class="kw">print</span>(<span class="kw">sum</span>(conv[[i]]))
 }</code></pre></div>
@@ -107,23 +109,23 @@ for(i in <span class="dv">1</span>:nsrcs)
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">magimage</span>(conv[[<span class="dv">1</span>]])</code></pre></div>
 <p>Now compute the true profile, which is also a Gaussian:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">conv.exact =<span class="st"> </span><span class="kw">list</span>()
-for(i in <span class="dv">1</span>:nsrcs) 
+<span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>nsrcs) 
 {
-  conv.exact[[i]] =<span class="st"> </span><span class="kw">profitCubaSersic</span>(<span class="dt">mag=</span><span class="dv">0</span>,<span class="dt">re=</span><span class="kw">sqrt</span>(fwhm.psf^<span class="dv">2</span>+fwhm.srcs[i]^<span class="dv">2</span>)/<span class="dv">2</span>,<span class="dt">nser=</span><span class="fl">0.5</span>,<span class="dt">dim=</span>dim)
+  conv.exact[[i]] =<span class="st"> </span><span class="kw">profitCubaSersic</span>(<span class="dt">mag=</span><span class="dv">0</span>,<span class="dt">re=</span><span class="kw">sqrt</span>(fwhm.psf<span class="op">^</span><span class="dv">2</span><span class="op">+</span>fwhm.srcs[i]<span class="op">^</span><span class="dv">2</span>)<span class="op">/</span><span class="dv">2</span>,<span class="dt">nser=</span><span class="fl">0.5</span>,<span class="dt">dim=</span>dim)
   <span class="kw">print</span>(<span class="kw">sum</span>(conv.exact[[i]]))
 }</code></pre></div>
 <pre><code>## [1] 1
 ## [1] 1
 ## [1] 0.9997613</code></pre>
 <p>Check if they differ:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">magimage</span>(conv[[<span class="dv">1</span>]]-conv.exact[[<span class="dv">1</span>]],<span class="dt">magmap=</span>F,<span class="dt">zlim=</span><span class="kw">c</span>(-<span class="dv">1</span>,<span class="dv">1</span>)*<span class="fl">2e-3</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">magimage</span>(conv[[<span class="dv">1</span>]]<span class="op">-</span>conv.exact[[<span class="dv">1</span>]],<span class="dt">magmap=</span>F,<span class="dt">zlim=</span><span class="kw">c</span>(<span class="op">-</span><span class="dv">1</span>,<span class="dv">1</span>)<span class="op">*</span><span class="fl">2e-3</span>)</code></pre></div>
 <p>Note how discretizing the PSF kernel pushes light out from the centre of the profile to approximately 1-2 FWHM:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">diffrels =<span class="st"> </span><span class="kw">list</span>()
-for(i in <span class="dv">1</span>:nsrcs)
+<span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>nsrcs)
 {
-  diffrels[[i]] =<span class="st"> </span>(conv[[i]]-conv.exact[[i]])/conv.exact[[i]]
-  cens =<span class="st"> </span><span class="kw">ceiling</span>(dim/<span class="dv">2</span>)
-  <span class="kw">print</span>(diffrels[[i]][cens[<span class="dv">1</span>]+<span class="dv">0</span>:<span class="dv">5</span>,cens[<span class="dv">2</span>]]) 
+  diffrels[[i]] =<span class="st"> </span>(conv[[i]]<span class="op">-</span>conv.exact[[i]])<span class="op">/</span>conv.exact[[i]]
+  cens =<span class="st"> </span><span class="kw">ceiling</span>(dim<span class="op">/</span><span class="dv">2</span>)
+  <span class="kw">print</span>(diffrels[[i]][cens[<span class="dv">1</span>]<span class="op">+</span><span class="dv">0</span><span class="op">:</span><span class="dv">5</span>,cens[<span class="dv">2</span>]]) 
 }</code></pre></div>
 <pre><code>## [1] -0.024857240 -0.019938145 -0.000628145  0.044935594  0.131069158
 ## [6]  0.268233131
@@ -132,21 +134,21 @@ for(i in <span class="dv">1</span>:nsrcs)
 ## [1] -0.005089902 -0.004934455 -0.004468025 -0.003690345 -0.002600973
 ## [6] -0.001199285</code></pre>
 <p>The discretized convolution is “softer” than it should be:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">magimage</span>(diffrels[[<span class="dv">1</span>]],<span class="dt">magmap=</span>F,<span class="dt">zlim=</span><span class="kw">c</span>(-<span class="dv">1</span>,<span class="dv">1</span>)*<span class="fl">5e-2</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">magimage</span>(diffrels[[<span class="dv">1</span>]],<span class="dt">magmap=</span>F,<span class="dt">zlim=</span><span class="kw">c</span>(<span class="op">-</span><span class="dv">1</span>,<span class="dv">1</span>)<span class="op">*</span><span class="fl">5e-2</span>)</code></pre></div>
 <p>Note that our convolution kernel is the integrated flux of a Gaussian in each pixel. This is the correct kernel to use in the trivial case, as it perfectly reproduces the convolution of a point source in the centre of the image. However, it cannot exactly convolve a point source located anywhere other than the exact centre of the pixel, because that is where the convolution kernel is centreed.</p>
 <p>Cappellari 2017 state that the use of an integrated convolution kernel (rather than the value of the function at the centre of a pixel) is equivalent to an extra convolution by a boxcar filter. But each pixel in the image is convolved as if the flux were entirely contained at the centre of the pixel, which is the opposite of convolution by a boxcar filter. The source of the error when discretizing convolution kernels as the integral of the distribution is the fact that barycentre of the flux is not at the centre of the pixel. For a monotonically decreasing function (1D or 2D), the barycentre is always shifted from the pixel centre slightly towards the peak of the distribution. This means that the convolution pushes the flux out slightly further from the centre of the distribution than it should, and hence the resulting image is smoothed slightly more than it should be.</p>
 <p>Put another way, if you integrate until you reach half of the total flux within a given pixel, you will always stop before the middle of pixel. As a last interpretation, there are always subpixel flux gradients and therefore higher-order moments in the distribution, which are not accounted for in convolution.</p>
 <p>One solution suggested by Cappellari 2017 (and commonly used elsewhere, though not always intentionally) is to evaluate the kernel at the centre of the pixel instead of integrating it:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">psfat =<span class="st"> </span><span class="kw">profitMakeModel</span>(<span class="dt">modellist =</span> <span class="kw">list</span>(<span class="dt">sersic =</span> <span class="kw">list</span>(<span class="dt">xcen =</span> dim[<span class="dv">1</span>]/<span class="dv">2</span>, 
-        <span class="dt">ycen =</span> dim[<span class="dv">2</span>]/<span class="dv">2</span>, <span class="dt">mag =</span> <span class="dv">0</span>, <span class="dt">re =</span> fwhm.psf/<span class="dv">2</span>, <span class="dt">nser =</span> <span class="fl">0.5</span>, <span class="dt">axrat =</span> <span class="dv">1</span>, 
-        <span class="dt">ang =</span> <span class="dv">0</span>)), <span class="dt">dim =</span> dim, <span class="dt">rough =</span> <span class="ot">TRUE</span>)$z
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">psfat =<span class="st"> </span><span class="kw">profitMakeModel</span>(<span class="dt">modellist =</span> <span class="kw">list</span>(<span class="dt">sersic =</span> <span class="kw">list</span>(<span class="dt">xcen =</span> dim[<span class="dv">1</span>]<span class="op">/</span><span class="dv">2</span>, 
+        <span class="dt">ycen =</span> dim[<span class="dv">2</span>]<span class="op">/</span><span class="dv">2</span>, <span class="dt">mag =</span> <span class="dv">0</span>, <span class="dt">re =</span> fwhm.psf<span class="op">/</span><span class="dv">2</span>, <span class="dt">nser =</span> <span class="fl">0.5</span>, <span class="dt">axrat =</span> <span class="dv">1</span>, 
+        <span class="dt">ang =</span> <span class="dv">0</span>)), <span class="dt">dim =</span> dim, <span class="dt">rough =</span> <span class="ot">TRUE</span>)<span class="op">$</span>z
 conv.at =<span class="st"> </span><span class="kw">list</span>()
 diffrels.at =<span class="st"> </span><span class="kw">list</span>()
-for(i in <span class="dv">1</span>:nsrcs)
+<span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>nsrcs)
 {
   conv.at[[i]] =<span class="st"> </span><span class="kw">profitConvolvePSF</span>(src[[i]],psfat)
-  diffrels.at[[i]] =<span class="st"> </span>(conv.at[[i]]-conv.exact[[i]])/conv.exact[[i]]
-  <span class="kw">print</span>(diffrels.at[[i]][cens[<span class="dv">1</span>]+<span class="dv">0</span>:<span class="dv">5</span>,cens[<span class="dv">2</span>]])
+  diffrels.at[[i]] =<span class="st"> </span>(conv.at[[i]]<span class="op">-</span>conv.exact[[i]])<span class="op">/</span>conv.exact[[i]]
+  <span class="kw">print</span>(diffrels.at[[i]][cens[<span class="dv">1</span>]<span class="op">+</span><span class="dv">0</span><span class="op">:</span><span class="dv">5</span>,cens[<span class="dv">2</span>]])
 }</code></pre></div>
 <pre><code>## [1]  0.020024102  0.012684779 -0.003304199 -0.014316112 -0.009167672
 ## [6]  0.012294608
@@ -155,12 +157,12 @@ for(i in <span class="dv">1</span>:nsrcs)
 ## [1] 1.137044e-05 1.117073e-05 1.054745e-05 9.425774e-06 7.672898e-06
 ## [6] 5.085408e-06</code></pre>
 <p>Curiously, this has the exact opposite effect: for a poorly resolved image the convolved image is too concentrated, and the residual alternates from positive to negative:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">magimage</span>(diffrels.at[[<span class="dv">1</span>]],<span class="dt">magmap=</span>F,<span class="dt">zlim=</span><span class="kw">c</span>(-<span class="dv">1</span>,<span class="dv">1</span>)*<span class="fl">5e-2</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">magimage</span>(diffrels.at[[<span class="dv">1</span>]],<span class="dt">magmap=</span>F,<span class="dt">zlim=</span><span class="kw">c</span>(<span class="op">-</span><span class="dv">1</span>,<span class="dv">1</span>)<span class="op">*</span><span class="fl">5e-2</span>)</code></pre></div>
 <p>However, it is true that for reasonably well-resolved galaxies (not smaller than the PSF), the residuals are considerably smaller than with the integrated PSF. How this generalizes to different profiles will be explored later. There are possible analytic solutions for Gaussian+exponential and exponential+exponential convolutions to be tested. In the scenario of using an observed PSF (commonly used these days, and the effective output of software like PSFex), using the integrated PSF is unavoidable. For this reason using the integrated form of the PSF might be preferable for consistency purposes.</p>
 <p>A simple method to improve convolution accuracy is to finesample (oversample) the image and convolution kernel. Of course, this is only possible if the image and kernel are defined analytically, which would be the case if they are both ProFit models. Proceeding as per the example in profitBenchmark (this will take a few seconds):</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">finesample=3L
-dimfine =<span class="st"> </span>finesample*dim
-psffine =<span class="st"> </span><span class="kw">profitCubaSersic</span>(<span class="dt">mag=</span><span class="dv">0</span>,<span class="dt">re=</span>finesample*fwhm.psf/<span class="dv">2</span>,<span class="dt">nser=</span><span class="fl">0.5</span>,<span class="dt">dim=</span>dimfine)
+dimfine =<span class="st"> </span>finesample<span class="op">*</span>dim
+psffine =<span class="st"> </span><span class="kw">profitCubaSersic</span>(<span class="dt">mag=</span><span class="dv">0</span>,<span class="dt">re=</span>finesample<span class="op">*</span>fwhm.psf<span class="op">/</span><span class="dv">2</span>,<span class="dt">nser=</span><span class="fl">0.5</span>,<span class="dt">dim=</span>dimfine)
 <span class="kw">print</span>(<span class="kw">sum</span>(psffine))</code></pre></div>
 <pre><code>## [1] 1</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">srcfine =<span class="st"> </span>psffine
@@ -168,65 +170,65 @@ convfine =<span class="st"> </span><span class="kw">profitConvolvePSF</span>(src
 <span class="kw">print</span>(<span class="kw">sum</span>(convfine))</code></pre></div>
 <pre><code>## [1] 1</code></pre>
 <p>Compute the difference again:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">diffrelfine =<span class="st"> </span>(<span class="kw">profitDownsample</span>(convfine,finesample)-conv.exact[[refsrcidx]])/conv.exact[[refsrcidx]]
-<span class="kw">print</span>(diffrelfine[cens[<span class="dv">1</span>]+<span class="dv">0</span>:<span class="dv">5</span>,cens[<span class="dv">2</span>]])</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">diffrelfine =<span class="st"> </span>(<span class="kw">profitDownsample</span>(convfine,finesample)<span class="op">-</span>conv.exact[[refsrcidx]])<span class="op">/</span>conv.exact[[refsrcidx]]
+<span class="kw">print</span>(diffrelfine[cens[<span class="dv">1</span>]<span class="op">+</span><span class="dv">0</span><span class="op">:</span><span class="dv">5</span>,cens[<span class="dv">2</span>]])</code></pre></div>
 <pre><code>## [1] -0.0027745775 -0.0023589524 -0.0011110470  0.0009722063  0.0038958490
 ## [6]  0.0076667990</code></pre>
 <p>The residuals are just like before, only they are smaller by approximately finesample^2:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">magimage</span>(diffrelfine,<span class="dt">magmap=</span>F,<span class="dt">zlim=</span><span class="kw">c</span>(-<span class="dv">1</span>,<span class="dv">1</span>)*<span class="fl">5e-2</span>/finesample^<span class="dv">2</span>)
-<span class="kw">print</span>(diffrels[[refsrcidx]][cens[<span class="dv">1</span>]+<span class="dv">0</span>:<span class="dv">5</span>,cens[<span class="dv">2</span>]]/diffrelfine[cens[<span class="dv">1</span>]+<span class="dv">0</span>:<span class="dv">5</span>,cens[<span class="dv">2</span>]])</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">magimage</span>(diffrelfine,<span class="dt">magmap=</span>F,<span class="dt">zlim=</span><span class="kw">c</span>(<span class="op">-</span><span class="dv">1</span>,<span class="dv">1</span>)<span class="op">*</span><span class="fl">5e-2</span><span class="op">/</span>finesample<span class="op">^</span><span class="dv">2</span>)
+<span class="kw">print</span>(diffrels[[refsrcidx]][cens[<span class="dv">1</span>]<span class="op">+</span><span class="dv">0</span><span class="op">:</span><span class="dv">5</span>,cens[<span class="dv">2</span>]]<span class="op">/</span>diffrelfine[cens[<span class="dv">1</span>]<span class="op">+</span><span class="dv">0</span><span class="op">:</span><span class="dv">5</span>,cens[<span class="dv">2</span>]])</code></pre></div>
 <p>This is a convenient result, since we can predict the amount of finesampling required to achieve a given error. Unfortunately, in the case of brute force convolution, the computational cost scales with both the size of the image and the kernel, so the number of operations scales as finesample^4! That is not good. Can we improve on this?</p>
 <p>The answer is yes - by realising that we don’t actually need the finesampled, convolved image, we can reduce the scaling to only finesample^2 convolutions at the original image size with offset PSFs. Behold:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">subpsfs =<span class="st"> </span><span class="kw">list</span>()
 subimgs =<span class="st"> </span><span class="kw">list</span>()
 subrows =<span class="st"> </span><span class="kw">seq</span>(<span class="dv">1</span>,<span class="dt">to=</span>dimfine[<span class="dv">1</span>],<span class="dt">by=</span>finesample)
 subcols =<span class="st"> </span><span class="kw">seq</span>(<span class="dv">1</span>,<span class="dt">to=</span>dimfine[<span class="dv">2</span>],<span class="dt">by=</span>finesample)
-subcens =<span class="st"> </span>dimfine/<span class="dv">2</span>
+subcens =<span class="st"> </span>dimfine<span class="op">/</span><span class="dv">2</span>
 idx =<span class="st"> </span><span class="dv">1</span>
 conv.efficient =<span class="st"> </span><span class="kw">matrix</span>(<span class="dv">0</span>,dim[<span class="dv">1</span>],dim[<span class="dv">2</span>])
-for(i in <span class="dv">1</span>:finesample)
+<span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>finesample)
 {
-  xoffset =<span class="st"> </span>i -<span class="st"> </span>finesample/<span class="dv">2</span> -<span class="st"> </span><span class="fl">0.5</span>
-  xrange =<span class="st"> </span><span class="kw">c</span>(<span class="dv">1</span>,dimfine[<span class="dv">1</span>]) +<span class="st"> </span>xoffset
+  xoffset =<span class="st"> </span>i <span class="op">-</span><span class="st"> </span>finesample<span class="op">/</span><span class="dv">2</span> <span class="op">-</span><span class="st"> </span><span class="fl">0.5</span>
+  xrange =<span class="st"> </span><span class="kw">c</span>(<span class="dv">1</span>,dimfine[<span class="dv">1</span>]) <span class="op">+</span><span class="st"> </span>xoffset
   xrange[<span class="dv">1</span>] =<span class="st"> </span><span class="kw">max</span>(<span class="dv">1</span>,xrange[<span class="dv">1</span>])
   xrange[<span class="dv">2</span>] =<span class="st"> </span><span class="kw">min</span>(dimfine[<span class="dv">1</span>],xrange[<span class="dv">2</span>])
-  xrange =<span class="st"> </span>xrange[<span class="dv">1</span>]:xrange[<span class="dv">2</span>]
-  for(j in <span class="dv">1</span>:finesample)
+  xrange =<span class="st"> </span>xrange[<span class="dv">1</span>]<span class="op">:</span>xrange[<span class="dv">2</span>]
+  <span class="cf">for</span>(j <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>finesample)
   {
-    yoffset =<span class="st"> </span>j -<span class="st"> </span>finesample/<span class="dv">2</span> -<span class="st"> </span><span class="fl">0.5</span>
-    yrange =<span class="st"> </span><span class="kw">c</span>(<span class="dv">1</span>,dimfine[<span class="dv">2</span>]) +<span class="st"> </span>yoffset
+    yoffset =<span class="st"> </span>j <span class="op">-</span><span class="st"> </span>finesample<span class="op">/</span><span class="dv">2</span> <span class="op">-</span><span class="st"> </span><span class="fl">0.5</span>
+    yrange =<span class="st"> </span><span class="kw">c</span>(<span class="dv">1</span>,dimfine[<span class="dv">2</span>]) <span class="op">+</span><span class="st"> </span>yoffset
     yrange[<span class="dv">1</span>] =<span class="st"> </span><span class="kw">max</span>(<span class="dv">1</span>,yrange[<span class="dv">1</span>])
     yrange[<span class="dv">2</span>] =<span class="st"> </span><span class="kw">min</span>(dimfine[<span class="dv">2</span>],yrange[<span class="dv">2</span>])
-    yrange =<span class="st"> </span>yrange[<span class="dv">1</span>]:yrange[<span class="dv">2</span>]
+    yrange =<span class="st"> </span>yrange[<span class="dv">1</span>]<span class="op">:</span>yrange[<span class="dv">2</span>]
     <span class="co"># Integer offset of the previously finesampled PSF</span>
     <span class="co"># Which is a subpixel offset at the original image scale</span>
     subpsfs[[idx]] =<span class="st"> </span><span class="kw">matrix</span>(<span class="dv">0</span>,dimfine[<span class="dv">1</span>],dimfine[<span class="dv">2</span>])
-    subpsfs[[idx]][xrange,yrange] =<span class="st"> </span>psffine[xrange-xoffset,yrange-yoffset]
+    subpsfs[[idx]][xrange,yrange] =<span class="st"> </span>psffine[xrange<span class="op">-</span>xoffset,yrange<span class="op">-</span>yoffset]
     subpsfs[[idx]] =<span class="st"> </span><span class="kw">profitDownsample</span>(subpsfs[[idx]],finesample)
-    subimgs[[idx]] =<span class="st"> </span>psffine[subrows +<span class="st"> </span>i -<span class="dv">1</span>, subcols +<span class="st"> </span>j -<span class="st"> </span><span class="dv">1</span>]
-    conv.efficient =<span class="st"> </span>conv.efficient +<span class="st"> </span><span class="kw">profitConvolvePSF</span>(subimgs[[idx]],subpsfs[[idx]])
-    idx =<span class="st"> </span>idx +<span class="st"> </span><span class="dv">1</span>
+    subimgs[[idx]] =<span class="st"> </span>psffine[subrows <span class="op">+</span><span class="st"> </span>i <span class="op">-</span><span class="dv">1</span>, subcols <span class="op">+</span><span class="st"> </span>j <span class="op">-</span><span class="st"> </span><span class="dv">1</span>]
+    conv.efficient =<span class="st"> </span>conv.efficient <span class="op">+</span><span class="st"> </span><span class="kw">profitConvolvePSF</span>(subimgs[[idx]],subpsfs[[idx]])
+    idx =<span class="st"> </span>idx <span class="op">+</span><span class="st"> </span><span class="dv">1</span>
   }
 }
-<span class="kw">print</span>(<span class="kw">range</span>(conv.efficient -<span class="st"> </span><span class="kw">profitDownsample</span>(convfine,finesample)))</code></pre></div>
+<span class="kw">print</span>(<span class="kw">range</span>(conv.efficient <span class="op">-</span><span class="st"> </span><span class="kw">profitDownsample</span>(convfine,finesample)))</code></pre></div>
 <pre><code>## [1] -6.938894e-18  6.938894e-18</code></pre>
 <p>Now let us test non-circular Gaussians (not finished, stop here!):</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">angs =<span class="st"> </span><span class="kw">c</span>(<span class="dt">psf=</span><span class="dv">20</span>,<span class="dt">src=</span><span class="dv">65</span>)
 axrats =<span class="st"> </span><span class="kw">c</span>(<span class="dt">psf=</span><span class="fl">0.8</span>,<span class="dt">src=</span><span class="fl">0.4</span>)
 fwhm.src=<span class="dv">5</span>
 fwhms =<span class="st"> </span><span class="kw">c</span>(<span class="dt">psf=</span>fwhm.psf,<span class="dt">src=</span>fwhm.src)
-psf =<span class="st"> </span><span class="kw">profitCubaSersic</span>(<span class="dt">mag=</span><span class="dv">0</span>,<span class="dt">re=</span>fwhm.psf/<span class="dv">2</span>,<span class="dt">nser=</span><span class="fl">0.5</span>,<span class="dt">dim=</span>dim,<span class="dt">ang=</span>angs[<span class="st">&quot;psf&quot;</span>], <span class="dt">axrat=</span>axrats[<span class="st">&quot;psf&quot;</span>])
-src =<span class="st"> </span><span class="kw">profitCubaSersic</span>(<span class="dt">mag=</span><span class="dv">0</span>,<span class="dt">re=</span>fwhm.src/<span class="dv">2</span>,<span class="dt">nser=</span><span class="fl">0.5</span>,<span class="dt">dim=</span>dim,<span class="dt">ang=</span>angs[<span class="st">&quot;src&quot;</span>], <span class="dt">axrat=</span>axrats[<span class="st">&quot;src&quot;</span>])
+psf =<span class="st"> </span><span class="kw">profitCubaSersic</span>(<span class="dt">mag=</span><span class="dv">0</span>,<span class="dt">re=</span>fwhm.psf<span class="op">/</span><span class="dv">2</span>,<span class="dt">nser=</span><span class="fl">0.5</span>,<span class="dt">dim=</span>dim,<span class="dt">ang=</span>angs[<span class="st">&quot;psf&quot;</span>], <span class="dt">axrat=</span>axrats[<span class="st">&quot;psf&quot;</span>])
+src =<span class="st"> </span><span class="kw">profitCubaSersic</span>(<span class="dt">mag=</span><span class="dv">0</span>,<span class="dt">re=</span>fwhm.src<span class="op">/</span><span class="dv">2</span>,<span class="dt">nser=</span><span class="fl">0.5</span>,<span class="dt">dim=</span>dim,<span class="dt">ang=</span>angs[<span class="st">&quot;src&quot;</span>], <span class="dt">axrat=</span>axrats[<span class="st">&quot;src&quot;</span>])
 
-costh =<span class="st"> </span><span class="kw">cos</span>((angs<span class="dv">+90</span>)*pi/<span class="dv">180</span>)
-sinth =<span class="st"> </span><span class="kw">sin</span>((angs<span class="dv">+90</span>)*pi/<span class="dv">180</span>)
+costh =<span class="st"> </span><span class="kw">cos</span>((angs<span class="op">+</span><span class="dv">90</span>)<span class="op">*</span>pi<span class="op">/</span><span class="dv">180</span>)
+sinth =<span class="st"> </span><span class="kw">sin</span>((angs<span class="op">+</span><span class="dv">90</span>)<span class="op">*</span>pi<span class="op">/</span><span class="dv">180</span>)
 
-fwhm.conv =<span class="st"> </span><span class="kw">c</span>(<span class="dt">x=</span><span class="kw">sum</span>(fwhms^<span class="dv">2</span>*costh*<span class="kw">abs</span>(costh)),
-              <span class="dt">y=</span><span class="kw">sum</span>(fwhms^<span class="dv">2</span>*sinth*<span class="kw">abs</span>(sinth)))
-fwhm.conv =<span class="st"> </span><span class="kw">sign</span>(fwhm.conv)*<span class="kw">sqrt</span>(<span class="kw">abs</span>(fwhm.conv))
-ang.conv =<span class="st"> </span><span class="kw">atan2</span>(fwhm.conv[<span class="st">&quot;y&quot;</span>],fwhm.conv[<span class="st">&quot;x&quot;</span>])*<span class="dv">180</span>/pi<span class="dv">-90</span>
+fwhm.conv =<span class="st"> </span><span class="kw">c</span>(<span class="dt">x=</span><span class="kw">sum</span>(fwhms<span class="op">^</span><span class="dv">2</span><span class="op">*</span>costh<span class="op">*</span><span class="kw">abs</span>(costh)),
+              <span class="dt">y=</span><span class="kw">sum</span>(fwhms<span class="op">^</span><span class="dv">2</span><span class="op">*</span>sinth<span class="op">*</span><span class="kw">abs</span>(sinth)))
+fwhm.conv =<span class="st"> </span><span class="kw">sign</span>(fwhm.conv)<span class="op">*</span><span class="kw">sqrt</span>(<span class="kw">abs</span>(fwhm.conv))
+ang.conv =<span class="st"> </span><span class="kw">atan2</span>(fwhm.conv[<span class="st">&quot;y&quot;</span>],fwhm.conv[<span class="st">&quot;x&quot;</span>])<span class="op">*</span><span class="dv">180</span><span class="op">/</span>pi<span class="op">-</span><span class="dv">90</span>
 
-conv =<span class="st"> </span><span class="kw">profitCubaSersic</span>(<span class="dt">mag=</span><span class="dv">0</span>,<span class="dt">re=</span><span class="kw">sqrt</span>(fwhm.src/<span class="dv">2</span>),<span class="dt">nser=</span><span class="fl">0.5</span>,<span class="dt">dim=</span>dim,<span class="dt">ang=</span>angs[<span class="st">&quot;src&quot;</span>], <span class="dt">axrat=</span>axrats[<span class="st">&quot;src&quot;</span>])</code></pre></div>
+conv =<span class="st"> </span><span class="kw">profitCubaSersic</span>(<span class="dt">mag=</span><span class="dv">0</span>,<span class="dt">re=</span><span class="kw">sqrt</span>(fwhm.src<span class="op">/</span><span class="dv">2</span>),<span class="dt">nser=</span><span class="fl">0.5</span>,<span class="dt">dim=</span>dim,<span class="dt">ang=</span>angs[<span class="st">&quot;src&quot;</span>], <span class="dt">axrat=</span>axrats[<span class="st">&quot;src&quot;</span>])</code></pre></div>
 <p>And exponential with Gaussian, or exponential with exponential (work in progress):</p>
 </div>
 

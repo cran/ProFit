@@ -1,3 +1,11 @@
+## ---- eval=FALSE---------------------------------------------------------
+#  library(devtools)
+#  install_github('asgr/ProFound')
+#  install_github('ICRAR/ProFit')
+
+## ------------------------------------------------------------------------
+evalglobal=FALSE
+
 ## ------------------------------------------------------------------------
 library(ProFit)
 library(ProFound)

@@ -1,13 +1,13 @@
 .profitGetOpenCLEnvRow <- function(name="",env_i=NA,
-  env_name=NA, version=NA, dev_i=NA, dev_name=NA,
-  supports_single=FALSE, supports_double=TRUE,
-  env_single=new("externalptr"), env_double=new("externalptr"),
-  stringsAsFactors=FALSE)
+                                   env_name=NA, version=NA, dev_i=NA, dev_name=NA,
+                                   supports_single=FALSE, supports_double=TRUE,
+                                   env_single=new("externalptr"), env_double=new("externalptr"),
+                                   stringsAsFactors=FALSE)
 {
   result = data.frame(name=name, env_i=env_i, env_name=env_name,
-    version=version, dev_i=dev_i, dev_name=dev_name,
-    supports_double=supports_double, supports_single=supports_single,
-    stringsAsFactors=stringsAsFactors)
+                      version=version, dev_i=dev_i, dev_name=dev_name,
+                      supports_double=supports_double, supports_single=supports_single,
+                      stringsAsFactors=stringsAsFactors)
   result$env_single=list(env_single)
   result$env_double=list(env_double)
   return(result)
@@ -20,7 +20,7 @@ profitBenchmarkResultBest <- function(result, precision="double")
   best = which.min(time)
   convolver = result[[best,paste0("convolver_",precision)]]
   openclenv = NULL
-  usecalcregion = FALSE
+  usecalcregion = result[[best,paste0("convolver_usecalcregion_",precision)]]
   if(identical(result$name[best],"opencl"))
   {
     openclenv = result[[best,paste0("env_",precision)]]
@@ -38,12 +38,12 @@ profitBenchmarkResultBest <- function(result, precision="double")
 }
 
 profitBenchmark <- function(image, methods=NULL, psf=NULL,
-  modellist=NULL, finesample=1L, calcregion=NULL, nbench=1,
-  benchconvolution=is.matrix(psf),
-  precisions=c("double"), omp_threads=1,
-  openclenvs = profitGetOpenCLEnvs(make.envs = TRUE),
-  reference = "brute", reusepsffft = TRUE, fft_effort=0,
-  returnimages = FALSE)
+                            modellist=NULL, finesample=1L, calcregion=NULL, nbench=1,
+                            benchconvolution=is.matrix(psf),
+                            precisions=c("double"), omp_threads=1,
+                            openclenvs = profitGetOpenCLEnvs(make.envs = TRUE),
+                            reference = "brute", reusepsffft = TRUE, fft_effort=0,
+                            returnimages = FALSE)
 {
   stopifnot(is.data.frame(openclenvs))
   stopifnot(any(unlist(lapply(precisions,function(x) { 
@@ -56,6 +56,13 @@ profitBenchmark <- function(image, methods=NULL, psf=NULL,
   } else {
     avail = profitAvailableIntegrators()
     convolver = NULL
+  }
+  hasopenclenvs = nrow(openclenvs) > 0
+  if(!hasopenclenvs)
+  {
+    openclenvs = NULL
+    oclmethods = which(startsWith(methods,"opencl"))
+    if(length(oclmethods) > 0) methods = methods[-oclmethods]
   }
   for(method in methods)
   {
@@ -78,12 +85,7 @@ profitBenchmark <- function(image, methods=NULL, psf=NULL,
     benchi = 1:ceiling(nbench)
     doaccuracy = reference %in% bench$name
     availusecalcregions = FALSE
-    if(!is.null(calcregion))
-    {
-      availusecalcregions = c(availusecalcregions,TRUE)
-      # libprofit needs a negative mask
-      calcregion = !calcregion
-    }
+    if(!is.null(calcregion)) availusecalcregions = c(availusecalcregions,TRUE)
     
     ptrvec = c()
     for(i in 1:nmethods) ptrvec = c(ptrvec, new("externalptr"))
@@ -92,7 +94,7 @@ profitBenchmark <- function(image, methods=NULL, psf=NULL,
     for(prec in c("single","double"))
     {
       for(name in c(tprefix,paste0(paste0("diff.",
-        c("rel.min","rel.max","abs.min","abs.max"),"_"))
+                                          c("rel.min","rel.max","abs.min","abs.max"),"_"))
       )) {
         bench[[paste0(name,prec)]] = NA 
       }
@@ -124,7 +126,11 @@ profitBenchmark <- function(image, methods=NULL, psf=NULL,
       precs = c()
       for(prec in c("single","double"))
       {
-        if(bench[[paste0("supports_",prec)]][[methodi]]) precs = c(precs,prec)
+        if(bench[[paste0("supports_",prec)]][[methodi]] &&
+           prec %in% precisions) 
+        {
+          precs = c(precs,prec)
+        }
       }
       for(prec in precs)
       {
@@ -134,15 +140,15 @@ profitBenchmark <- function(image, methods=NULL, psf=NULL,
           if(startsWith(method,"opencl"))
           {
             stop(paste0("Error! OpenCL method='",method,"', env='",bench$env_name[[methodi]],
-              "', has null openclptr. Did you call profitGetOpenCLEnvs(make=TRUE)?"))
+                        "', has null openclptr. Did you call profitGetOpenCLEnvs(make=TRUE)?"))
           }
           openclenv=NULL
         }
         if(benchconvolution)
         {
           convolver = profitMakeConvolver(method,
-            image_dimensions = dimimage, psf=psf, reuse_psf_fft = reusepsffft,
-            omp_threads=omp_threads, openclenv=openclenv)
+                                          image_dimensions = dimimage, psf=psf, reuse_psf_fft = reusepsffft,
+                                          omp_threads=omp_threads, openclenv=openclenv)
         }
         if(identical(bench$name[[methodi]],"fft")) usecalcregions = FALSE
         else usecalcregions = availusecalcregions
@@ -162,7 +168,7 @@ profitBenchmark <- function(image, methods=NULL, psf=NULL,
             for(i in benchi)
             {
               imagei = profitMakeModel(modellist,dim=dimimage, finesample = finesample,
-                openclenv = openclenv, omp_threads = omp_threads)$z
+                                       openclenv = openclenv, omp_threads = omp_threads)$z
             }
           }
           timeinms = 1000*(summary(proc.time())[["elapsed"]] - timeinms)/nbench
@@ -187,7 +193,7 @@ profitBenchmark <- function(image, methods=NULL, psf=NULL,
           if(methodi == refmethod && prec == refprec) refimage = imagei
           diff = refimage - imagei
           diffs = list(abs = range(diff),
-            rel = range((diff/refimage)[refimage>0]))
+                       rel = range((diff/refimage)[refimage>0]))
           for(diffn in names(diffs))
           {
             bench[[paste0("diff.",diffn,".min_",prec)]][[methodi]] = diffs[[diffn]][1]
@@ -199,6 +205,7 @@ profitBenchmark <- function(image, methods=NULL, psf=NULL,
     rv$result = bench
     if(returnimages) rv$images = images
   }
+  class(rv)="profit.benchmark"
   return(rv)
 }
 
@@ -214,7 +221,7 @@ profitBenchmarkResultStripPointers <- function(dataframe, colnames=as.vector(
   for(cname in colnames)
   {
     if((isnumeric && (cname >= 1) && (cname <= ncols)) || 
-      (ischaracter && cname %in% allcols))
+       (ischaracter && cname %in% allcols))
     {
       dataframe[[cname]] = as.list(capture.output(print(dataframe[[cname]]))[seq(2,3*nrows,by=3)])
     }

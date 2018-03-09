@@ -1,10 +1,9 @@
-## ----setup, include=FALSE------------------------------------------------
-knitr::opts_chunk$set(echo=TRUE)
+## ---- eval=FALSE---------------------------------------------------------
+#  library(devtools)
+#  install_github('ICRAR/ProFit')
 
 ## ------------------------------------------------------------------------
-library(knitr)
 library(ProFit)
-library(FITSio)
 
 ## ------------------------------------------------------------------------
 data('ExampleInit', package="ProFit")
