@@ -31,14 +31,16 @@ profitLikeModel=function(parm, Data, makeplots=FALSE,
       psf = Data$psf
     }
     
+    openclenv=Data$openclenv
+    if(identical(openclenv,new("externalptr"))) openclenv = NULL
     if(Data$usecalcregion){
       model = profitMakeModel(modellist=modellistnew, magzero = Data$magzero, psf=psf, dim=dim(image), psfdim=psfdim,
         whichcomponents = whichcomponents, rough=rough, calcregion=Data$calcregion, docalcregion=Data$usecalcregion,
-        magmu=Data$magmu,finesample=finesample, convopt=Data$convopt, openclenv=Data$openclenv, omp_threads=Data$omp_threads)
+        magmu=Data$magmu,finesample=finesample, convopt=Data$convopt, openclenv=openclenv, omp_threads=Data$omp_threads)
     }else{
       model = profitMakeModel(modellist=modellistnew, magzero = Data$magzero, psf=psf, dim=dim(image), psfdim=psfdim,
         whichcomponents = whichcomponents, rough=rough,
-        magmu=Data$magmu, finesample=finesample, convopt=Data$convopt, openclenv=Data$openclenv, omp_threads=Data$omp_threads)
+        magmu=Data$magmu, finesample=finesample, convopt=Data$convopt, openclenv=openclenv, omp_threads=Data$omp_threads)
     }
   } else {
     stopifnot(is.list(model) && !is.null(model$z))
@@ -162,9 +164,17 @@ profitLikeModel=function(parm, Data, makeplots=FALSE,
   if(algo.func=='LA' | algo.func=='LD')
   {
     Monitor=c(LL=LL,LP=LP)
-    if("time" %in% Data$mon.names) Monitor = c(Monitor,tend = proc.time()["elapsed"])
-    if("chisq" %in% Data$mon.names) Monitor = c(Monitor,chisq = chisq)
-    if(ist) Monitor=c(Monitor,dof=dof)
+    if("time" %in% Data$mon.names){
+      Monitor = c(Monitor,tend = proc.time()["elapsed"])
+    }
+    if("chisq" %in% Data$mon.names){
+      Monitor[which(Data$mon.names=="chisq")] = chisq
+      names(Monitor)[which(Data$mon.names=="chisq")]='chisq'
+    }
+    if("dof" %in% Data$mon.names){
+      Monitor[which(Data$mon.names=="dof")] = dof
+      names(Monitor)[which(Data$mon.names=="dof")]='dof'
+    }
     out=list(LP=LP,Dev=-2*LL,Monitor=Monitor,yhat=1,parm=parm)
   }
   return=out

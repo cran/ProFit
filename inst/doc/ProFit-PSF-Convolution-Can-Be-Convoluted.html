@@ -12,7 +12,7 @@
 
 <meta name="author" content="Dan Taranu" />
 
-<meta name="date" content="2018-03-09" />
+<meta name="date" content="2018-06-12" />
 
 <title>ProFit: PSF Convolution Can Be Convoluted</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">ProFit: PSF Convolution Can Be Convoluted</h1>
 <h4 class="author"><em>Dan Taranu</em></h4>
-<h4 class="date"><em>2018-03-09</em></h4>
+<h4 class="date"><em>2018-06-12</em></h4>
 
 
 
@@ -100,7 +100,7 @@ conv =<span class="st"> </span><span class="kw">list</span>()
   conv[[i]] =<span class="st"> </span><span class="kw">profitConvolvePSF</span>(src[[i]], psf)
   <span class="kw">print</span>(<span class="kw">sum</span>(conv[[i]]))
 }</code></pre></div>
-<pre><code>## [1] 1
+<pre><code>## [1] 0.9999988
 ## [1] 1
 ## [1] 0.999725</code></pre>
 <p>Check out the PSF:</p>
@@ -127,12 +127,12 @@ conv =<span class="st"> </span><span class="kw">list</span>()
   cens =<span class="st"> </span><span class="kw">ceiling</span>(dim<span class="op">/</span><span class="dv">2</span>)
   <span class="kw">print</span>(diffrels[[i]][cens[<span class="dv">1</span>]<span class="op">+</span><span class="dv">0</span><span class="op">:</span><span class="dv">5</span>,cens[<span class="dv">2</span>]]) 
 }</code></pre></div>
-<pre><code>## [1] -0.024857240 -0.019938145 -0.000628145  0.044935594  0.131069158
-## [6]  0.268233131
-## [1] -0.024587483 -0.020957656 -0.010015053  0.008397708  0.034547523
-## [6]  0.068811958
+<pre><code>## [1] -0.0248584782 -0.0199393938 -0.0006294299  0.0449342437  0.1310676829
+## [6]  0.2682313232
+## [1] -0.024587483 -0.020957656 -0.010015054  0.008397708  0.034547523
+## [6]  0.068811966
 ## [1] -0.005089902 -0.004934455 -0.004468025 -0.003690345 -0.002600973
-## [6] -0.001199285</code></pre>
+## [6] -0.001199284</code></pre>
 <p>The discretized convolution is “softer” than it should be:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">magimage</span>(diffrels[[<span class="dv">1</span>]],<span class="dt">magmap=</span>F,<span class="dt">zlim=</span><span class="kw">c</span>(<span class="op">-</span><span class="dv">1</span>,<span class="dv">1</span>)<span class="op">*</span><span class="fl">5e-2</span>)</code></pre></div>
 <p>Note that our convolution kernel is the integrated flux of a Gaussian in each pixel. This is the correct kernel to use in the trivial case, as it perfectly reproduces the convolution of a point source in the centre of the image. However, it cannot exactly convolve a point source located anywhere other than the exact centre of the pixel, because that is where the convolution kernel is centreed.</p>
@@ -150,10 +150,10 @@ diffrels.at =<span class="st"> </span><span class="kw">list</span>()
   diffrels.at[[i]] =<span class="st"> </span>(conv.at[[i]]<span class="op">-</span>conv.exact[[i]])<span class="op">/</span>conv.exact[[i]]
   <span class="kw">print</span>(diffrels.at[[i]][cens[<span class="dv">1</span>]<span class="op">+</span><span class="dv">0</span><span class="op">:</span><span class="dv">5</span>,cens[<span class="dv">2</span>]])
 }</code></pre></div>
-<pre><code>## [1]  0.020024102  0.012684779 -0.003304199 -0.014316112 -0.009167672
-## [6]  0.012294608
-## [1]  1.640769e-05  1.612228e-05  1.634205e-05  1.506837e-05  3.336798e-06
-## [6] -1.057283e-04
+<pre><code>## [1]  0.020022808  0.012683487 -0.003305484 -0.014317411 -0.009169152
+## [6]  0.012292330
+## [1]  1.640769e-05  1.612228e-05  1.634205e-05  1.506837e-05  3.336810e-06
+## [6] -1.057282e-04
 ## [1] 1.137044e-05 1.117073e-05 1.054745e-05 9.425774e-06 7.672898e-06
 ## [6] 5.085408e-06</code></pre>
 <p>Curiously, this has the exact opposite effect: for a poorly resolved image the convolved image is too concentrated, and the residual alternates from positive to negative:</p>
@@ -172,8 +172,8 @@ convfine =<span class="st"> </span><span class="kw">profitConvolvePSF</span>(src
 <p>Compute the difference again:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">diffrelfine =<span class="st"> </span>(<span class="kw">profitDownsample</span>(convfine,finesample)<span class="op">-</span>conv.exact[[refsrcidx]])<span class="op">/</span>conv.exact[[refsrcidx]]
 <span class="kw">print</span>(diffrelfine[cens[<span class="dv">1</span>]<span class="op">+</span><span class="dv">0</span><span class="op">:</span><span class="dv">5</span>,cens[<span class="dv">2</span>]])</code></pre></div>
-<pre><code>## [1] -0.0027745775 -0.0023589524 -0.0011110470  0.0009722063  0.0038958490
-## [6]  0.0076667990</code></pre>
+<pre><code>## [1] -0.0027745775 -0.0023589524 -0.0011110467  0.0009722072  0.0038958485
+## [6]  0.0076667876</code></pre>
 <p>The residuals are just like before, only they are smaller by approximately finesample^2:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">magimage</span>(diffrelfine,<span class="dt">magmap=</span>F,<span class="dt">zlim=</span><span class="kw">c</span>(<span class="op">-</span><span class="dv">1</span>,<span class="dv">1</span>)<span class="op">*</span><span class="fl">5e-2</span><span class="op">/</span>finesample<span class="op">^</span><span class="dv">2</span>)
 <span class="kw">print</span>(diffrels[[refsrcidx]][cens[<span class="dv">1</span>]<span class="op">+</span><span class="dv">0</span><span class="op">:</span><span class="dv">5</span>,cens[<span class="dv">2</span>]]<span class="op">/</span>diffrelfine[cens[<span class="dv">1</span>]<span class="op">+</span><span class="dv">0</span><span class="op">:</span><span class="dv">5</span>,cens[<span class="dv">2</span>]])</code></pre></div>
@@ -211,7 +211,7 @@ conv.efficient =<span class="st"> </span><span class="kw">matrix</span>(<span cl
   }
 }
 <span class="kw">print</span>(<span class="kw">range</span>(conv.efficient <span class="op">-</span><span class="st"> </span><span class="kw">profitDownsample</span>(convfine,finesample)))</code></pre></div>
-<pre><code>## [1] -6.938894e-18  6.938894e-18</code></pre>
+<pre><code>## [1] -3.469447e-18  1.387779e-17</code></pre>
 <p>Now let us test non-circular Gaussians (not finished, stop here!):</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">angs =<span class="st"> </span><span class="kw">c</span>(<span class="dt">psf=</span><span class="dv">20</span>,<span class="dt">src=</span><span class="dv">65</span>)
 axrats =<span class="st"> </span><span class="kw">c</span>(<span class="dt">psf=</span><span class="fl">0.8</span>,<span class="dt">src=</span><span class="fl">0.4</span>)
