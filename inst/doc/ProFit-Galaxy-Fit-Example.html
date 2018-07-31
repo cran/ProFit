@@ -12,7 +12,7 @@
 
 <meta name="author" content="Aaron Robotham &amp; Dan Taranu" />
 
-<meta name="date" content="2018-06-12" />
+<meta name="date" content="2018-07-31" />
 
 <title>ProFit: Galaxy Fitting Example</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">ProFit: Galaxy Fitting Example</h1>
 <h4 class="author"><em>Aaron Robotham &amp; Dan Taranu</em></h4>
-<h4 class="date"><em>2018-06-12</em></h4>
+<h4 class="date"><em>2018-07-31</em></h4>
 
 
 
@@ -79,28 +79,11 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <span class="kw">install_github</span>(<span class="st">'ICRAR/ProFit'</span>)</code></pre></div>
 <p>First load the libraries we need:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(ProFit)</code></pre></div>
-<pre><code>## Loading required package: Rcpp</code></pre>
 <pre><code>## Loading required package: magicaxis</code></pre>
-<pre><code>## Loading required package: MASS</code></pre>
-<pre><code>## Loading required package: plotrix</code></pre>
-<pre><code>## Loading required package: sm</code></pre>
-<pre><code>## Package 'sm', version 2.2-5.4: type help(sm) for summary information</code></pre>
-<pre><code>## 
-## Attaching package: 'sm'</code></pre>
-<pre><code>## The following object is masked from 'package:MASS':
-## 
-##     muscle</code></pre>
-<pre><code>## Loading required package: mapproj</code></pre>
-<pre><code>## Loading required package: maps</code></pre>
 <pre><code>## Loading required package: celestial</code></pre>
 <pre><code>## Loading required package: RANN</code></pre>
 <pre><code>## Loading required package: NISTunits</code></pre>
 <pre><code>## Loading required package: pracma</code></pre>
-<pre><code>## 
-## Attaching package: 'pracma'</code></pre>
-<pre><code>## The following object is masked from 'package:sm':
-## 
-##     nile</code></pre>
 <pre><code>## Loading required package: FITSio</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(knitr)</code></pre></div>
 <div id="prepare-the-test-data" class="section level2">
@@ -367,7 +350,7 @@ priors=<span class="cf">function</span>(new,init,<span class="dt">sigmas=</span>
 <pre><code>## function(new,init,sigmas=sigmavec){
 ##   return(sum(2*dnorm(log10(new$sersic$re),log10(init$sersic$re),sigmas[4],log=TRUE)))
 ## }
-## &lt;bytecode: 0x7fa1d0b24848&gt;</code></pre>
+## &lt;bytecode: 0x7f83ace7e980&gt;</code></pre>
 <p>Because of this issue, we provide a utility function to create a valid prior function, saving the values of the prior distributions:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">sigmas=<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">5</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">30</span>,<span class="fl">0.3</span>,<span class="ot">Inf</span>)
 
@@ -418,7 +401,7 @@ priors=<span class="kw">profitMakePriors</span>(modellist, sigmas, tolog, <span 
 ##     }
 ##     return = LL
 ## }
-## &lt;bytecode: 0x7fa1cf26fa08&gt;</code></pre>
+## &lt;bytecode: 0x7f83b20af648&gt;</code></pre>
 <p>The hard intervals should also be specified in linear space:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">intervals=<span class="kw">list</span>(
   <span class="dt">sersic=</span><span class="kw">list</span>(
@@ -465,8 +448,8 @@ priors=<span class="kw">profitMakePriors</span>(modellist, sigmas, tolog, <span 
 <h2>Do some fitting</h2>
 <p>First we will try <code>optim</code> BFGS.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">sigmas=<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">5</span>,<span class="dv">5</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">30</span>,<span class="dv">30</span>,<span class="fl">0.3</span>,<span class="fl">0.3</span>)
-<span class="kw">print</span>(<span class="kw">system.time</span>(optimfit &lt;-<span class="st"> </span><span class="kw">optim</span>(Data<span class="op">$</span>init, profitLikeModel, <span class="dt">method=</span><span class="st">'BFGS'</span>, <span class="dt">Data=</span>Data,
-  <span class="dt">control=</span><span class="kw">list</span>(<span class="dt">fnscale=</span><span class="op">-</span><span class="dv">1</span>,<span class="dt">parscale=</span>sigmas[<span class="kw">which</span>(<span class="kw">unlist</span>(tofit))]))))
+<span class="kw">print</span>(<span class="kw">system.time</span>({optimfit =<span class="st"> </span><span class="kw">optim</span>(Data<span class="op">$</span>init, profitLikeModel, <span class="dt">method=</span><span class="st">'BFGS'</span>, <span class="dt">Data=</span>Data,
+  <span class="dt">control=</span><span class="kw">list</span>(<span class="dt">fnscale=</span><span class="op">-</span><span class="dv">1</span>,<span class="dt">parscale=</span>sigmas[<span class="kw">which</span>(<span class="kw">unlist</span>(tofit))]))}))
 <span class="kw">print</span>(optimfit<span class="op">$</span>value)</code></pre></div>
 <p>The best <code>optim</code> BFGS fit is given by:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">optimfit<span class="op">$</span>par</code></pre></div>
@@ -496,10 +479,12 @@ Data<span class="op">$</span>constraints=constraints</code></pre></div>
   whichfitlog =<span class="st"> </span><span class="kw">which</span>(<span class="kw">unlist</span>(Data<span class="op">$</span>tolog)[whichfit])
   lower =<span class="st"> </span>intervals[<span class="dv">2</span><span class="op">*</span>(<span class="dv">1</span><span class="op">:</span>npar)<span class="op">-</span><span class="dv">1</span>][whichfit]
   upper =<span class="st"> </span>intervals[<span class="dv">2</span><span class="op">*</span>(<span class="dv">1</span><span class="op">:</span>npar)][whichfit]
+  lower[whichfitlog]=<span class="kw">log10</span>(lower[whichfitlog])
+  upper[whichfitlog]=<span class="kw">log10</span>(upper[whichfitlog])
   
-  <span class="kw">system.time</span>(nloptfit &lt;-<span class="st"> </span><span class="kw">nloptr</span>(
+  <span class="kw">system.time</span>({nloptfit =<span class="st"> </span><span class="kw">nloptr</span>(
     <span class="dt">x0 =</span> Data<span class="op">$</span>init, <span class="dt">eval_f=</span><span class="cf">function</span>(x,Data) { <span class="kw">return</span>(<span class="op">-</span><span class="kw">profitLikeModel</span>(x,<span class="dt">Data=</span>Data))}, <span class="dt">lb =</span> lower, <span class="dt">ub =</span> upper,
-    <span class="dt">opts=</span><span class="kw">list</span>(<span class="dt">algorithm=</span><span class="kw">paste0</span>(<span class="st">&quot;NLOPT_LN_NELDERMEAD&quot;</span>),<span class="dt">xtol_rel=</span><span class="dv">0</span>,<span class="dt">ftol_abs=</span><span class="fl">1e-3</span>,<span class="dt">maxeval=</span><span class="fl">2e3</span>), <span class="dt">Data=</span>Data))
+    <span class="dt">opts=</span><span class="kw">list</span>(<span class="dt">algorithm=</span><span class="kw">paste0</span>(<span class="st">&quot;NLOPT_LN_NELDERMEAD&quot;</span>),<span class="dt">xtol_rel=</span><span class="dv">0</span>,<span class="dt">ftol_abs=</span><span class="fl">1e-3</span>,<span class="dt">maxeval=</span><span class="fl">2e3</span>), <span class="dt">Data=</span>Data)})
   <span class="kw">print</span>(<span class="op">-</span>nloptfit<span class="op">$</span>objective)
 }</code></pre></div>
 <p>One important consideration is how to determine convergence. Most optimizers test for convergence based on absolute and/or relative changes in the likelihood and/or parameters, but can also stop after a given elapsed time or number of iterations. It is important to check why the optimization stopped, especially before running MCMC, which can be slower to converge to the global minimum.</p>
@@ -508,11 +493,11 @@ Data<span class="op">$</span>constraints=constraints</code></pre></div>
 {
   <span class="kw">library</span>(LaplacesDemon)
   Data<span class="op">$</span>algo.func=<span class="st">&quot;LA&quot;</span>
-  <span class="kw">system.time</span>(LAfit &lt;-<span class="st"> </span><span class="kw">LaplaceApproximation</span>(profitLikeModel, <span class="dt">parm=</span>Data<span class="op">$</span>init, <span class="dt">Data=</span>Data, <span class="dt">Iterations=</span><span class="fl">1e3</span>,
-    <span class="dt">Method=</span><span class="st">'LM'</span>, <span class="dt">CovEst=</span><span class="st">'Identity'</span>, <span class="dt">sir=</span><span class="ot">FALSE</span>))
+  <span class="kw">system.time</span>({LAfit =<span class="st"> </span><span class="kw">LaplaceApproximation</span>(profitLikeModel, <span class="dt">parm=</span>Data<span class="op">$</span>init, <span class="dt">Data=</span>Data, <span class="dt">Iterations=</span><span class="fl">1e3</span>,
+    <span class="dt">Method=</span><span class="st">'LM'</span>, <span class="dt">CovEst=</span><span class="st">'Identity'</span>, <span class="dt">sir=</span><span class="ot">FALSE</span>)})
   <span class="kw">print</span>(LAfit<span class="op">$</span>LP.Final)
-  <span class="kw">system.time</span>(LAfitnm &lt;-<span class="st"> </span><span class="kw">LaplaceApproximation</span>(profitLikeModel, <span class="dt">parm=</span>Data<span class="op">$</span>init, <span class="dt">Data=</span>Data, <span class="dt">Iterations=</span><span class="fl">1e3</span>,
-    <span class="dt">Method=</span><span class="st">'NM'</span>, <span class="dt">CovEst=</span><span class="st">'Identity'</span>, <span class="dt">sir=</span><span class="ot">FALSE</span>))
+  <span class="kw">system.time</span>({LAfitnm =<span class="st"> </span><span class="kw">LaplaceApproximation</span>(profitLikeModel, <span class="dt">parm=</span>Data<span class="op">$</span>init, <span class="dt">Data=</span>Data, <span class="dt">Iterations=</span><span class="fl">1e3</span>,
+    <span class="dt">Method=</span><span class="st">'NM'</span>, <span class="dt">CovEst=</span><span class="st">'Identity'</span>, <span class="dt">sir=</span><span class="ot">FALSE</span>)})
   <span class="kw">print</span>(LAfitnm<span class="op">$</span>LP.Final)
 }</code></pre></div>
 <p>Note that LaplaceApproximation is typically slower than nlopt/optim, but it can be used to estimate uncertainties more quickly than by doing MCMC. The best LA LM fit is given by:</p>

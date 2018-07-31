@@ -12,7 +12,7 @@
 
 <meta name="author" content="Dan Taranu" />
 
-<meta name="date" content="2018-06-12" />
+<meta name="date" content="2018-07-31" />
 
 <title>ProFit: PSF Convolution Can Be Convoluted</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">ProFit: PSF Convolution Can Be Convoluted</h1>
 <h4 class="author"><em>Dan Taranu</em></h4>
-<h4 class="date"><em>2018-06-12</em></h4>
+<h4 class="date"><em>2018-07-31</em></h4>
 
 
 
@@ -135,7 +135,7 @@ conv =<span class="st"> </span><span class="kw">list</span>()
 ## [6] -0.001199284</code></pre>
 <p>The discretized convolution is “softer” than it should be:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">magimage</span>(diffrels[[<span class="dv">1</span>]],<span class="dt">magmap=</span>F,<span class="dt">zlim=</span><span class="kw">c</span>(<span class="op">-</span><span class="dv">1</span>,<span class="dv">1</span>)<span class="op">*</span><span class="fl">5e-2</span>)</code></pre></div>
-<p>Note that our convolution kernel is the integrated flux of a Gaussian in each pixel. This is the correct kernel to use in the trivial case, as it perfectly reproduces the convolution of a point source in the centre of the image. However, it cannot exactly convolve a point source located anywhere other than the exact centre of the pixel, because that is where the convolution kernel is centreed.</p>
+<p>Note that our convolution kernel is the integrated flux of a Gaussian in each pixel. This is the correct kernel to use in the trivial case, as it perfectly reproduces the convolution of a point source in the centre of the image. However, it cannot exactly convolve a point source located anywhere other than the exact centre of the pixel, because that is where the convolution kernel is centred.</p>
 <p>Cappellari 2017 state that the use of an integrated convolution kernel (rather than the value of the function at the centre of a pixel) is equivalent to an extra convolution by a boxcar filter. But each pixel in the image is convolved as if the flux were entirely contained at the centre of the pixel, which is the opposite of convolution by a boxcar filter. The source of the error when discretizing convolution kernels as the integral of the distribution is the fact that barycentre of the flux is not at the centre of the pixel. For a monotonically decreasing function (1D or 2D), the barycentre is always shifted from the pixel centre slightly towards the peak of the distribution. This means that the convolution pushes the flux out slightly further from the centre of the distribution than it should, and hence the resulting image is smoothed slightly more than it should be.</p>
 <p>Put another way, if you integrate until you reach half of the total flux within a given pixel, you will always stop before the middle of pixel. As a last interpretation, there are always subpixel flux gradients and therefore higher-order moments in the distribution, which are not accounted for in convolution.</p>
 <p>One solution suggested by Cappellari 2017 (and commonly used elsewhere, though not always intentionally) is to evaluate the kernel at the centre of the pixel instead of integrating it:</p>

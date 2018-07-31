@@ -16,11 +16,11 @@ using namespace profit;
 using namespace std;
 
 static
-vector<double> _read_image(SEXP r_image, unsigned int *im_width, unsigned int *im_height) {
+Image _read_image(SEXP r_image) {
 
-	*im_width = Rf_nrows(r_image);
-	*im_height = Rf_ncols(r_image);
-	unsigned int size = *im_width * *im_height;
+	unsigned int im_width = Rf_nrows(r_image);
+	unsigned int im_height = Rf_ncols(r_image);
+	unsigned int size = im_width * im_height;
 
 	double *image_real_ptr;
 	int *image_int_ptr;
@@ -38,22 +38,29 @@ vector<double> _read_image(SEXP r_image, unsigned int *im_width, unsigned int *i
 			std::copy(image_int_ptr, image_int_ptr + size, image.begin());
 			break;
 
+		case LGLSXP:
+			image_int_ptr = LOGICAL(r_image);
+			image = vector<double>(size);
+			std::copy(image_int_ptr, image_int_ptr + size, image.begin());
+			break;
+
+
 		default:
-			Rf_error("Image not in one of the supported formats (integer, double)");
+			Rf_error("Image not in one of the supported formats (logical, integer, double)");
 			image = {};
 			break;
 	}
 
-	return image;
+	return Image(std::move(image), im_width, im_height);
 }
 
 static
-vector<bool> _read_mask(SEXP r_mask, unsigned int *m_width, unsigned int *m_height) {
+Mask _read_mask(SEXP r_mask) {
 	int *r_raw_mask = LOGICAL(r_mask);
-	*m_width = Rf_nrows(r_mask);
-	*m_height = Rf_ncols(r_mask);
-	vector<bool> mask(r_raw_mask, r_raw_mask + (*m_width * *m_height));
-	return mask;
+	unsigned int m_width = Rf_nrows(r_mask);
+	unsigned int m_height = Rf_ncols(r_mask);
+	vector<bool> mask(r_raw_mask, r_raw_mask + (m_width * m_height));
+	return Mask(std::move(mask), m_width, m_height);
 }
 
 static
@@ -276,8 +283,6 @@ void _read_psf_profiles(Model &model, SEXP profiles_list) {
  * OpenCL-related functionality follows
  * ----------------------------------------------------------------------------
  */
-#ifdef PROFIT_OPENCL
-
 static
 SEXP _R_profit_openclenv_info() {
 
@@ -406,34 +411,13 @@ SEXP _R_profit_openclenv(SEXP plat_idx, SEXP dev_idx, SEXP use_dbl) {
 	return r_openclenv;
 }
 
-#else
-static
-SEXP _R_profit_openclenv_info() {
-	Rf_warning("This ProFit package was not compiled with OpenCL support\n");
-	return R_NilValue;
-}
-
-static
-SEXP _R_profit_openclenv(SEXP plat_idx, SEXP dev_idx, SEXP use_dbl) {
-	Rf_error("This ProFit package was not compiled with OpenCL support\n");
-	return R_NilValue;
-}
-#endif /* PROFIT_OPENCL */
-
-
 /*
  * OpenMP-related functionality follows
  * ----------------------------------------------------------------------------
  */
 static
 SEXP _R_profit_has_openmp() {
-	return Rf_ScalarLogical(
-#ifdef PROFIT_OPENMP
-		TRUE
-#else
-		FALSE
-#endif /* PROFIT_OPENMP */
-	);
+	return Rf_ScalarLogical(profit::has_openmp());
 }
 
 /*
@@ -442,13 +426,7 @@ SEXP _R_profit_has_openmp() {
  */
 static
 SEXP _R_profit_has_fftw() {
-	return Rf_ScalarLogical(
-#ifdef PROFIT_FFTW
-		TRUE
-#else
-		FALSE
-#endif /* PROFIT_FFTW */
-	);
+	return Rf_ScalarLogical(profit::has_fftw());
 }
 
 /*
@@ -493,17 +471,13 @@ ConvolverPtr unwrap_convolver(SEXP convolver)
 static
 SEXP _R_profit_convolvers()
 {
-	static const vector<string> convolvers = {
-		"brute"
-#ifdef PROFIT_OPENCL
-		,"opencl"
-// Disabled for now as it's not ready
-//		,"opencl-local"
-#endif /* PROFIT_OPENCL */
-#ifdef PROFIT_FFTW
-		,"fft"
-#endif /* PROFIT_FFTW */
-	};
+	vector<string> convolvers {"brute"};
+	if (profit::has_opencl()) {
+		convolvers.push_back("opencl");
+	}
+	if (profit::has_fftw()) {
+		convolvers.push_back("fftw");
+	}
 
 	const size_t n_convolvers = convolvers.size();
 	SEXP convolvers_r = PROTECT(Rf_allocVector(STRSXP, n_convolvers));
@@ -522,30 +496,23 @@ SEXP _R_profit_make_convolver(SEXP type, SEXP image_dimensions, SEXP psf,
 {
 
 	ConvolverCreationPreferences conv_prefs;
-	conv_prefs.src_width = (unsigned int)INTEGER(image_dimensions)[0];
-	conv_prefs.src_height = (unsigned int)INTEGER(image_dimensions)[1];
-	_read_image(psf, &conv_prefs.krn_width, &conv_prefs.krn_height);
+	conv_prefs.src_dims = {(unsigned int)INTEGER(image_dimensions)[0], (unsigned int)INTEGER(image_dimensions)[1]};
+	conv_prefs.krn_dims = _read_image(psf).getDimensions();
 
-#ifdef PROFIT_OPENMP
 	if( omp_threads != R_NilValue ) {
 		conv_prefs.omp_threads = (unsigned int)Rf_asInteger(omp_threads);
 	}
-#endif /* PROFIT_OPENMP */
-#ifdef PROFIT_FFTW
 	if (reuse_psf_fft != R_NilValue ) {
 		conv_prefs.reuse_krn_fft = (bool)Rf_asLogical(reuse_psf_fft);
 	}
 	if (fft_effort != R_NilValue) {
-		conv_prefs.effort = FFTPlan::effort_t((unsigned int)Rf_asInteger(fft_effort));
+		conv_prefs.effort = effort_t((unsigned int)Rf_asInteger(fft_effort));
 	}
-#endif /* PROFIT_FFTW */
-#ifdef PROFIT_OPENCL
 	if (openclenv != R_NilValue ) {
 		if((conv_prefs.opencl_env = unwrap_openclenv(openclenv)) == nullptr) {
 			return R_NilValue;
 		}
 	}
-#endif /* PROFIT_OPENCL */
 
 	convolver_wrapper *wrapper = new convolver_wrapper();
 	std::string error;
@@ -570,11 +537,9 @@ SEXP _R_profit_make_convolver(SEXP type, SEXP image_dimensions, SEXP psf,
 static
 SEXP _R_profit_make_model(SEXP model_list) {
 
-	ssize_t size;
 	unsigned int img_w, img_h;
 	double scale_x = 1, scale_y = 1;
 	string error;
-	vector<bool> mask;
 
 	SEXP dimensions = _get_list_element(model_list, "dimensions");
 	img_w = (unsigned int)INTEGER(dimensions)[0];
@@ -596,40 +561,39 @@ SEXP _R_profit_make_model(SEXP model_list) {
 	}
 
 	/* Read model parameters */
-	Model m;
-	m.width  = img_w;
-	m.height = img_h;
-	m.scale_x = scale_x;
-	m.scale_y = scale_y;
-	m.magzero = Rf_asReal(magzero);
+	Model m {img_w, img_h};
+	m.set_image_pixel_scale({scale_x, scale_y});
+	m.set_magzero(Rf_asReal(magzero));
+	m.set_finesampling(static_cast<unsigned int>(Rf_asInteger(_get_list_element(model_list, "finesampling"))));
+	m.set_return_finesampled(static_cast<bool>(Rf_asLogical(_get_list_element(model_list, "returnfine"))));
+	m.set_crop(static_cast<bool>(Rf_asLogical(_get_list_element(model_list, "crop"))));
 
 	SEXP r_psf = _get_list_element(model_list, "psf");
 	if( r_psf != R_NilValue ) {
-		m.psf = _read_image(r_psf, &m.psf_width, &m.psf_height);
-		m.psf_scale_x = scale_x;
-		m.psf_scale_y = scale_y;
+		m.set_psf(_read_image(r_psf));
+		m.set_psf_pixel_scale({scale_x, scale_y});
 	}
 
 	SEXP r_calcregion = _get_list_element(model_list, "calcregion");
 	if( r_calcregion != R_NilValue ) {
-		unsigned int mask_w, mask_h;
-		m.calcmask = _read_mask(r_calcregion, &mask_w, &mask_h);
-		if( mask_w != img_w || mask_h != img_h ) {
+		auto mask = _read_mask(r_calcregion);
+		if (mask.getDimensions() != Dimensions{img_w, img_h}) {
 			Rf_error("Calc region has different dimensions than the image");
 			return R_NilValue;
 		}
+		m.set_mask(std::move(mask));
 	}
 
 	/* A convolver, if any */
-	SEXP convolver = _get_list_element(model_list, "convolver");
-	if (convolver != R_NilValue) {
-		m.convolver = unwrap_convolver(convolver);
-		if (!m.convolver) {
+	SEXP r_convolver = _get_list_element(model_list, "convolver");
+	if (r_convolver != R_NilValue) {
+		auto convolver = unwrap_convolver(r_convolver);
+		if (!convolver) {
 			return R_NilValue;
 		}
+		m.set_convolver(convolver);
 	}
 
-#ifdef PROFIT_OPENCL
 	/* OpenCL environment, if any */
 	SEXP openclenv = _get_list_element(model_list, "openclenv");
 	if( openclenv != R_NilValue ) {
@@ -645,17 +609,14 @@ SEXP _R_profit_make_model(SEXP model_list) {
 			return R_NilValue;
 		}
 
-		m.opencl_env = wrapper->env;
+		m.set_opencl_env(wrapper->env);
 	}
-#endif /* PROFIT_OPENCL */
 
-#ifdef PROFIT_OPENMP
 	/* Number of OpenMP threads, if any */
 	SEXP omp_threads = _get_list_element(model_list, "omp_threads");
 	if( omp_threads != R_NilValue ) {
-		m.omp_threads = (unsigned int)Rf_asInteger(omp_threads);
+		m.set_omp_threads((unsigned int)Rf_asInteger(omp_threads));
 	}
-#endif /* PROFIT_OPENMP */
 
 	/* Read profiles and parameters and append them to the model */
 	SEXP profiles = _get_list_element(model_list, "profiles");
@@ -677,9 +638,10 @@ SEXP _R_profit_make_model(SEXP model_list) {
 	}
 
 	/* Go, go, go! */
-	vector<double> model_image;
+	Image image;
+	Point offset;
 	try {
-		model_image = m.evaluate();
+		image = m.evaluate(offset);
 	} catch (const std::exception &e) {
 		stringstream ss;
 		ss << "Error while calculating model: " << e.what() << endl;
@@ -687,48 +649,87 @@ SEXP _R_profit_make_model(SEXP model_list) {
 		return R_NilValue;
 	}
 
-	/* Copy the image, clean up, and good bye */
-	size = m.width * m.height;
-	SEXP image = PROTECT(Rf_allocVector(REALSXP, size));
-	memcpy(REAL(image), model_image.data(), sizeof(double) * size);
-
-	UNPROTECT(1);
-	return image;
+	/* Copy the image into a matrix, pack together with the offset, and bye */
+	SEXP r_image = PROTECT(Rf_allocMatrix(REALSXP, image.getWidth(), image.getHeight()));
+	SEXP r_offset = PROTECT(Rf_list2(Rf_ScalarInteger(offset.x + 1), Rf_ScalarInteger(offset.y + 1)));
+	memcpy(REAL(r_image), image.data(), sizeof(double) * image.size());
+	SEXP ret = PROTECT(Rf_list2(r_image, r_offset));
+	UNPROTECT(3);
+	return ret;
 }
 
 static
 SEXP _R_profit_convolve(SEXP r_convolver, SEXP r_image, SEXP r_psf, SEXP r_mask) {
-
-	unsigned int img_w, img_h, psf_w, psf_h;
 
 	ConvolverPtr convolver = unwrap_convolver(r_convolver);
 	if (!convolver) {
 		return R_NilValue;
 	}
 
-	vector<double> image = _read_image(r_image, &img_w, &img_h);
-	vector<double> psf = _read_image(r_psf, &psf_w, &psf_h);
-	vector<bool> mask;
-
+	auto src = _read_image(r_image);
+	auto psf = _read_image(r_psf);
+	Mask mask;
 	if (r_mask != R_NilValue) {
-		unsigned int calc_w, calc_h;
-		mask = _read_mask(r_mask, &calc_w, &calc_h);
-		// we already checked that dimensions are fine
+		mask = _read_mask(r_mask);
 	}
 
-	Image src_image(image, img_w, img_h);
-	Image psf_image(psf, psf_w, psf_h);
-	Mask mask_image;
-	if (r_mask != R_NilValue) {
-		mask_image = Mask(mask, img_w, img_h);
-	}
-	image = convolver->convolve(src_image, psf_image, mask_image).getData();
-	SEXP ret_image = PROTECT(Rf_allocVector(REALSXP, img_w * img_h));
-	memcpy(REAL(ret_image), image.data(), sizeof(double) * img_w * img_h);
+	auto image = convolver->convolve(src, psf, mask);
+	SEXP ret_image = PROTECT(Rf_allocVector(REALSXP, image.size()));
+	memcpy(REAL(ret_image), image.data(), sizeof(double) * image.size());
 
 	UNPROTECT(1);
 	return ret_image;
 
+}
+
+static
+SEXP _R_profit_downsample(SEXP img, SEXP factor)
+{
+	auto image = _read_image(img);
+	if (!image) {
+		return R_NilValue;
+	}
+
+	try {
+		image = image.downsample((unsigned int)Rf_asInteger(factor), Image::DownsamplingMode::SUM);
+	} catch (const std::exception &e) {
+		stringstream ss;
+		ss << "Error while downsampling image: " << e.what() << endl;
+		Rf_error(ss.str().c_str());
+		return R_NilValue;
+	}
+
+	/* Copy the image, clean up, and good bye */
+	SEXP r_image = PROTECT(Rf_allocMatrix(REALSXP, image.getWidth(), image.getHeight()));
+	memcpy(REAL(r_image), image.data(), sizeof(double) * image.size());
+
+	UNPROTECT(1);
+	return r_image;
+}
+
+static
+SEXP _R_profit_upsample(SEXP img, SEXP factor)
+{
+	auto image = _read_image(img);
+	if (!image) {
+		return R_NilValue;
+	}
+
+	try {
+		image = image.upsample((unsigned int)Rf_asInteger(factor), Image::UpsamplingMode::COPY);
+	} catch (const std::exception &e) {
+		stringstream ss;
+		ss << "Error while downsampling image: " << e.what() << endl;
+		Rf_error(ss.str().c_str());
+		return R_NilValue;
+	}
+
+	/* Copy the image, clean up, and good bye */
+	SEXP r_image = PROTECT(Rf_allocMatrix(REALSXP, image.getWidth(), image.getHeight()));
+	memcpy(REAL(r_image), image.data(), sizeof(double) * image.size());
+
+	UNPROTECT(1);
+	return r_image;
 }
 
 extern "C" {
@@ -767,12 +768,18 @@ extern "C" {
 		return _R_profit_openclenv(plat_idx, dev_idx, use_dbl);
 	}
 
-	/*
-	 * Defined in ProFit.cpp and generated in RcppExports.cpp
-	 * Needed here so we can register all exported symbols
-	 */
-	SEXP _ProFit_profitDownsample(SEXP, SEXP);
-	SEXP _ProFit_profitUpsample(SEXP, SEXP);
+	SEXP R_profit_downsample(SEXP img, SEXP factor) {
+		return _R_profit_downsample(img, factor);
+	}
+
+	SEXP R_profit_upsample(SEXP img, SEXP factor) {
+		return _R_profit_upsample(img, factor);
+	}
+
+	SEXP R_profit_clear_cache() {
+		profit::clear_cache();
+		return R_NilValue;
+	}
 
 	/*
 	 * Registering the methods above at module loading time
@@ -790,28 +797,36 @@ extern "C" {
 		{"R_profit_has_fftw",       (DL_FUNC) &R_profit_has_fftw,       0},
 		{"R_profit_openclenv_info", (DL_FUNC) &R_profit_openclenv_info, 0},
 		{"R_profit_openclenv",      (DL_FUNC) &R_profit_openclenv,      3},
-
-		/* Defined in ProFit.cpp and generated in RcppExports.cpp */
-		{"_ProFit_profitDownsample", (DL_FUNC) &_ProFit_profitDownsample, 2},
-		{"_ProFit_profitUpsample",   (DL_FUNC) &_ProFit_profitUpsample,   2},
+		{"R_profit_downsample",     (DL_FUNC) &R_profit_downsample,     2},
+		{"R_profit_upsample",       (DL_FUNC) &R_profit_upsample,       2},
+		{"R_profit_clear_cache",    (DL_FUNC) &R_profit_clear_cache,    0},
 
 		/* Sentinel */
 		{NULL, NULL, 0}
 	};
 
 	void R_init_ProFit(DllInfo *dll) {
-#ifdef PROFIT_FFTW
-		FFTPlan::initialize();
-#endif
+
+		auto success = profit::init();
+		if (!success) {
+			std::ostringstream os;
+			os << "Error when initializing libprofit: " << profit::init_diagnose();
+			Rf_error(os.str().c_str());
+		}
+
 		/* Using registered symbols only from now on */
 		R_registerRoutines(dll, NULL, callMethods, NULL, NULL);
 		R_useDynamicSymbols(dll, FALSE);
 	}
 
 	void R_unload_ProFit(DllInfo *info) {
-#ifdef PROFIT_FFTW
-		FFTPlan::finalize();
-#endif
+		profit::finish();
+		auto diagnose = profit::finish_diagnose();
+		if (!diagnose.empty()) {
+			std::ostringstream os;
+			os << "Warning when finishing libprofit: " << diagnose;
+			Rf_warning(os.str().c_str());
+		}
 	}
 
 }

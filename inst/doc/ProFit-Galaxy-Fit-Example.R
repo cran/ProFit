@@ -156,8 +156,8 @@ profitLikeModel(parm=Data$init, Data=Data, makeplots=TRUE)
 
 ## ---- eval=FALSE---------------------------------------------------------
 #  sigmas=c(2,2,2,2,5,5,1,1,1,1,30,30,0.3,0.3)
-#  print(system.time(optimfit <- optim(Data$init, profitLikeModel, method='BFGS', Data=Data,
-#    control=list(fnscale=-1,parscale=sigmas[which(unlist(tofit))]))))
+#  print(system.time({optimfit = optim(Data$init, profitLikeModel, method='BFGS', Data=Data,
+#    control=list(fnscale=-1,parscale=sigmas[which(unlist(tofit))]))}))
 #  print(optimfit$value)
 
 ## ---- eval=FALSE---------------------------------------------------------
@@ -193,10 +193,12 @@ Data$constraints=constraints
 #    whichfitlog = which(unlist(Data$tolog)[whichfit])
 #    lower = intervals[2*(1:npar)-1][whichfit]
 #    upper = intervals[2*(1:npar)][whichfit]
+#    lower[whichfitlog]=log10(lower[whichfitlog])
+#    upper[whichfitlog]=log10(upper[whichfitlog])
 #  
-#    system.time(nloptfit <- nloptr(
+#    system.time({nloptfit = nloptr(
 #      x0 = Data$init, eval_f=function(x,Data) { return(-profitLikeModel(x,Data=Data))}, lb = lower, ub = upper,
-#      opts=list(algorithm=paste0("NLOPT_LN_NELDERMEAD"),xtol_rel=0,ftol_abs=1e-3,maxeval=2e3), Data=Data))
+#      opts=list(algorithm=paste0("NLOPT_LN_NELDERMEAD"),xtol_rel=0,ftol_abs=1e-3,maxeval=2e3), Data=Data)})
 #    print(-nloptfit$objective)
 #  }
 
@@ -205,11 +207,11 @@ Data$constraints=constraints
 #  {
 #    library(LaplacesDemon)
 #    Data$algo.func="LA"
-#    system.time(LAfit <- LaplaceApproximation(profitLikeModel, parm=Data$init, Data=Data, Iterations=1e3,
-#      Method='LM', CovEst='Identity', sir=FALSE))
+#    system.time({LAfit = LaplaceApproximation(profitLikeModel, parm=Data$init, Data=Data, Iterations=1e3,
+#      Method='LM', CovEst='Identity', sir=FALSE)})
 #    print(LAfit$LP.Final)
-#    system.time(LAfitnm <- LaplaceApproximation(profitLikeModel, parm=Data$init, Data=Data, Iterations=1e3,
-#      Method='NM', CovEst='Identity', sir=FALSE))
+#    system.time({LAfitnm = LaplaceApproximation(profitLikeModel, parm=Data$init, Data=Data, Iterations=1e3,
+#      Method='NM', CovEst='Identity', sir=FALSE)})
 #    print(LAfitnm$LP.Final)
 #  }
 

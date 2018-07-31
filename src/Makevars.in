@@ -1,16 +1,18 @@
 CXX_STD = CXX11
 
-PKG_CPPFLAGS = -Ilibprofit -DPROFIT_BUILD @profit_CPPFLAGS@
+PKG_CPPFLAGS = -Ilibprofit -Dprofit_EXPORTS @profit_CPPFLAGS@
 PKG_LIBS = @profit_LIBS@
 
 OBJECTS = libprofit/src/brokenexponential.o \
           libprofit/src/convolve.o \
           libprofit/src/coresersic.o \
+          libprofit/src/crc.o \
           libprofit/src/exceptions.o \
           libprofit/src/ferrer.o \
           libprofit/src/fft.o \
           libprofit/src/image.o \
           libprofit/src/king.o \
+          libprofit/src/library.o \
           libprofit/src/model.o \
           libprofit/src/moffat.o \
           libprofit/src/opencl.o \
@@ -20,6 +22,4 @@ OBJECTS = libprofit/src/brokenexponential.o \
           libprofit/src/sersic.o \
           libprofit/src/sky.o \
           libprofit/src/utils.o \
-          r_profit.o \
-          ProFit.o \
-          RcppExports.o
+          r_profit.o
