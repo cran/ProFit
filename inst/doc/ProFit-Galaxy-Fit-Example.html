@@ -12,7 +12,7 @@
 
 <meta name="author" content="Aaron Robotham &amp; Dan Taranu" />
 
-<meta name="date" content="2018-07-31" />
+<meta name="date" content="2018-08-03" />
 
 <title>ProFit: Galaxy Fitting Example</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">ProFit: Galaxy Fitting Example</h1>
 <h4 class="author"><em>Aaron Robotham &amp; Dan Taranu</em></h4>
-<h4 class="date"><em>2018-07-31</em></h4>
+<h4 class="date"><em>2018-08-03</em></h4>
 
 
 
@@ -79,12 +79,8 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <span class="kw">install_github</span>(<span class="st">'ICRAR/ProFit'</span>)</code></pre></div>
 <p>First load the libraries we need:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(ProFit)</code></pre></div>
-<pre><code>## Loading required package: magicaxis</code></pre>
-<pre><code>## Loading required package: celestial</code></pre>
-<pre><code>## Loading required package: RANN</code></pre>
-<pre><code>## Loading required package: NISTunits</code></pre>
-<pre><code>## Loading required package: pracma</code></pre>
 <pre><code>## Loading required package: FITSio</code></pre>
+<pre><code>## Loading required package: magicaxis</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(knitr)</code></pre></div>
 <div id="prepare-the-test-data" class="section level2">
 <h2>Prepare the test data</h2>
@@ -350,7 +346,7 @@ priors=<span class="cf">function</span>(new,init,<span class="dt">sigmas=</span>
 <pre><code>## function(new,init,sigmas=sigmavec){
 ##   return(sum(2*dnorm(log10(new$sersic$re),log10(init$sersic$re),sigmas[4],log=TRUE)))
 ## }
-## &lt;bytecode: 0x7f83ace7e980&gt;</code></pre>
+## &lt;bytecode: 0x7f95c8c7fdc8&gt;</code></pre>
 <p>Because of this issue, we provide a utility function to create a valid prior function, saving the values of the prior distributions:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">sigmas=<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">5</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">30</span>,<span class="fl">0.3</span>,<span class="ot">Inf</span>)
 
@@ -401,7 +397,7 @@ priors=<span class="kw">profitMakePriors</span>(modellist, sigmas, tolog, <span 
 ##     }
 ##     return = LL
 ## }
-## &lt;bytecode: 0x7f83b20af648&gt;</code></pre>
+## &lt;bytecode: 0x7f95cbcca8e0&gt;</code></pre>
 <p>The hard intervals should also be specified in linear space:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">intervals=<span class="kw">list</span>(
   <span class="dt">sersic=</span><span class="kw">list</span>(
