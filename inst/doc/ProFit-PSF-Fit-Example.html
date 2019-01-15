@@ -12,7 +12,7 @@
 
 <meta name="author" content="Aaron Robotham" />
 
-<meta name="date" content="2018-11-28" />
+<meta name="date" content="2019-01-15" />
 
 <title>ProFit: PSF Fitting Example</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">ProFit: PSF Fitting Example</h1>
 <h4 class="author"><em>Aaron Robotham</em></h4>
-<h4 class="date"><em>2018-11-28</em></h4>
+<h4 class="date"><em>2019-01-15</em></h4>
 
 
 
@@ -83,145 +83,29 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <h2>Prepare the test data</h2>
 <p>Next we load a table of data describing GAMA galaxies:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">data</span>(<span class="st">'ExampleInit'</span>, <span class="dt">package=</span><span class="st">&quot;ProFit&quot;</span>)
-<span class="kw">kable</span>(<span class="kw">head</span>(ExampleInit, <span class="dv">10</span>))</code></pre></div>
-<table>
-<thead>
-<tr class="header">
-<th align="right">CATAID</th>
-<th align="right">sersic.xcen1</th>
-<th align="right">sersic.ycen1</th>
-<th align="right">sersic.mag1</th>
-<th align="right">sersic.mag2</th>
-<th align="right">sersic.re1</th>
-<th align="right">sersic.re2</th>
-<th align="right">sersic.nser1</th>
-<th align="right">sersic.ang2</th>
-<th align="right">sersic.axrat2</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="right">265769</td>
-<td align="right">122.8069</td>
-<td align="right">87.3328</td>
-<td align="right">17.08908</td>
-<td align="right">17.08908</td>
-<td align="right">8.71420</td>
-<td align="right">17.4284</td>
-<td align="right">3.4292</td>
-<td align="right">105.8498</td>
-<td align="right">0.1541</td>
-</tr>
-<tr class="even">
-<td align="right">265911</td>
-<td align="right">84.8832</td>
-<td align="right">94.5951</td>
-<td align="right">16.83217</td>
-<td align="right">16.83217</td>
-<td align="right">7.05740</td>
-<td align="right">14.1148</td>
-<td align="right">4.3776</td>
-<td align="right">140.8191</td>
-<td align="right">0.4891</td>
-</tr>
-<tr class="odd">
-<td align="right">265940</td>
-<td align="right">80.3975</td>
-<td align="right">52.2173</td>
-<td align="right">18.04857</td>
-<td align="right">18.04857</td>
-<td align="right">5.96290</td>
-<td align="right">11.9258</td>
-<td align="right">4.6010</td>
-<td align="right">112.2746</td>
-<td align="right">0.4875</td>
-</tr>
-<tr class="even">
-<td align="right">265943</td>
-<td align="right">53.7013</td>
-<td align="right">83.6956</td>
-<td align="right">17.70547</td>
-<td align="right">17.70547</td>
-<td align="right">6.42060</td>
-<td align="right">12.8412</td>
-<td align="right">4.5086</td>
-<td align="right">168.2385</td>
-<td align="right">0.4179</td>
-</tr>
-<tr class="odd">
-<td align="right">265981</td>
-<td align="right">148.8727</td>
-<td align="right">106.4069</td>
-<td align="right">16.85618</td>
-<td align="right">16.85618</td>
-<td align="right">11.00100</td>
-<td align="right">22.0020</td>
-<td align="right">2.9434</td>
-<td align="right">59.6690</td>
-<td align="right">0.2621</td>
-</tr>
-<tr class="even">
-<td align="right">265986</td>
-<td align="right">78.1780</td>
-<td align="right">79.9999</td>
-<td align="right">18.97747</td>
-<td align="right">18.97747</td>
-<td align="right">6.80575</td>
-<td align="right">13.6115</td>
-<td align="right">2.0082</td>
-<td align="right">103.2134</td>
-<td align="right">0.0423</td>
-</tr>
-<tr class="odd">
-<td align="right">265985</td>
-<td align="right">51.3467</td>
-<td align="right">73.0023</td>
-<td align="right">19.03898</td>
-<td align="right">19.03898</td>
-<td align="right">5.77065</td>
-<td align="right">11.5413</td>
-<td align="right">2.7402</td>
-<td align="right">0.7028</td>
-<td align="right">0.5400</td>
-</tr>
-<tr class="even">
-<td align="right">266033</td>
-<td align="right">66.0826</td>
-<td align="right">79.0872</td>
-<td align="right">17.39138</td>
-<td align="right">17.39138</td>
-<td align="right">6.25480</td>
-<td align="right">12.5096</td>
-<td align="right">4.9178</td>
-<td align="right">39.5336</td>
-<td align="right">0.3336</td>
-</tr>
-<tr class="odd">
-<td align="right">266035</td>
-<td align="right">105.1495</td>
-<td align="right">78.5289</td>
-<td align="right">18.18017</td>
-<td align="right">18.18017</td>
-<td align="right">11.38780</td>
-<td align="right">22.7756</td>
-<td align="right">2.9550</td>
-<td align="right">56.3237</td>
-<td align="right">0.6222</td>
-</tr>
-<tr class="even">
-<td align="right">266105</td>
-<td align="right">264.8947</td>
-<td align="right">219.5667</td>
-<td align="right">15.45027</td>
-<td align="right">15.45027</td>
-<td align="right">36.68265</td>
-<td align="right">73.3653</td>
-<td align="right">3.9704</td>
-<td align="right">94.4409</td>
-<td align="right">0.3477</td>
-</tr>
-</tbody>
-</table>
+<span class="kw">head</span>(ExampleInit, <span class="dv">10</span>)</code></pre></div>
+<pre><code>##    CATAID sersic.xcen1 sersic.ycen1 sersic.mag1 sersic.mag2 sersic.re1
+## 1  265769     122.8069      87.3328    17.08907    17.08907    8.71420
+## 2  265911      84.8832      94.5951    16.83217    16.83217    7.05740
+## 3  265940      80.3975      52.2173    18.04857    18.04857    5.96290
+## 4  265943      53.7013      83.6956    17.70547    17.70547    6.42060
+## 5  265981     148.8727     106.4069    16.85617    16.85617   11.00100
+## 6  265986      78.1780      79.9999    18.97747    18.97747    6.80575
+## 7  265985      51.3467      73.0023    19.03897    19.03897    5.77065
+## 8  266033      66.0826      79.0872    17.39137    17.39137    6.25480
+## 9  266035     105.1495      78.5289    18.18017    18.18017   11.38780
+## 10 266105     264.8947     219.5667    15.45027    15.45027   36.68265
+##    sersic.re2 sersic.nser1 sersic.ang2 sersic.axrat2
+## 1     17.4284       3.4292    105.8498        0.1541
+## 2     14.1148       4.3776    140.8191        0.4891
+## 3     11.9258       4.6010    112.2746        0.4875
+## 4     12.8412       4.5086    168.2385        0.4179
+## 5     22.0020       2.9434     59.6690        0.2621
+## 6     13.6115       2.0082    103.2134        0.0423
+## 7     11.5413       2.7402      0.7028        0.5400
+## 8     12.5096       4.9178     39.5336        0.3336
+## 9     22.7756       2.9550     56.3237        0.6222
+## 10    73.3653       3.9704     94.4409        0.3477</code></pre>
 <p>Here we will use an SDSS example:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">datasource=<span class="st">'SDSS'</span></code></pre></div>
 <p>Now we can extract out the example files we have available for fitting by checking the contents of the directory containing the example FITS files:</p>

@@ -7,7 +7,7 @@ library(ProFit)
 
 ## ------------------------------------------------------------------------
 data('ExampleInit', package="ProFit")
-kable(head(ExampleInit, 10))
+head(ExampleInit, 10)
 
 ## ------------------------------------------------------------------------
 datasource='SDSS'

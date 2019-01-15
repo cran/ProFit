@@ -49,15 +49,26 @@
 # define PASTE(x,y) x ## y ## 0
 # define MAKE_VERSION(x,y) PASTE(x,y)
 # define CL_HPP_TARGET_OPENCL_VERSION  MAKE_VERSION(PROFIT_OPENCL_MAJOR, PROFIT_OPENCL_MINOR)
+# define CL_TARGET_OPENCL_VERSION  MAKE_VERSION(PROFIT_OPENCL_MAJOR, PROFIT_OPENCL_MINOR)
 # define CL_HPP_MINIMUM_OPENCL_VERSION PROFIT_OPENCL_TARGET_VERSION
 
 /*
  * GCC 6 gives lots of "ignoring attributes on template arguments" warnings
- * Until the cl2.hpp header files doesn't get a proper fix (it's taken from
- * the official Kronos github) we simply turn the warnings off.
+ * because the built-in types have alignment attributes, and when these types
+ * are used as template parameters (e.g., when creating a vector<cl_int>) these
+ * attribute information is lost. This isn't an issue in reality though, and
+ * therefore we can safely disable this warning.
+ *
+ * Clang also complains about missing brances during the initialization of
+ * cl_image_desc structures because some systems define an anonymous union for
+ * the last member (which according to the spec is cl_mem buffer). Again,
+ * there's nothing we can do about this structure definition, and therefore we
+ * simply shut up the warnings.
  */
 #if defined __GNUC__ && __GNUC__>=6
 # pragma GCC diagnostic ignored "-Wignored-attributes"
+#elif defined __clang__
+# pragma clang diagnostic ignored "-Wmissing-braces"
 #endif
 #include "profit/cl/cl2.hpp"
 
