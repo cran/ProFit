@@ -12,7 +12,7 @@
 
 <meta name="author" content="Aaron Robotham &amp; Dan Taranu" />
 
-<meta name="date" content="2019-01-15" />
+<meta name="date" content="2019-04-04" />
 
 <title>ProFit: Galaxy Fitting Example</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">ProFit: Galaxy Fitting Example</h1>
 <h4 class="author"><em>Aaron Robotham &amp; Dan Taranu</em></h4>
-<h4 class="date"><em>2019-01-15</em></h4>
+<h4 class="date"><em>2019-04-04</em></h4>
 
 
 
@@ -229,7 +229,7 @@ priors=<span class="cf">function</span>(new,init,<span class="dt">sigmas=</span>
 <pre><code>## function(new,init,sigmas=sigmavec){
 ##   return(sum(2*dnorm(log10(new$sersic$re),log10(init$sersic$re),sigmas[4],log=TRUE)))
 ## }
-## &lt;bytecode: 0x7ffb2f75c3f8&gt;</code></pre>
+## &lt;bytecode: 0x7fe3808911c8&gt;</code></pre>
 <p>Because of this issue, we provide a utility function to create a valid prior function, saving the values of the prior distributions:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">sigmas=<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">5</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">30</span>,<span class="fl">0.3</span>,<span class="ot">Inf</span>)
 
@@ -280,7 +280,7 @@ priors=<span class="kw">profitMakePriors</span>(modellist, sigmas, tolog, <span 
 ##     }
 ##     return = LL
 ## }
-## &lt;bytecode: 0x7ffb2fd26e10&gt;</code></pre>
+## &lt;bytecode: 0x7fe38012e0d0&gt;</code></pre>
 <p>The hard intervals should also be specified in linear space:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">intervals=<span class="kw">list</span>(
   <span class="dt">sersic=</span><span class="kw">list</span>(
