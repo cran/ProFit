@@ -12,54 +12,287 @@
 
 <meta name="author" content="Aaron Robotham &amp; Dan Taranu" />
 
-<meta name="date" content="2019-04-04" />
+<meta name="date" content="2019-07-23" />
 
 <title>ProFit: Galaxy Fitting Example</title>
 
 
 
 <style type="text/css">code{white-space: pre;}</style>
-<style type="text/css">
-div.sourceCode { overflow-x: auto; }
-table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
-  margin: 0; padding: 0; vertical-align: baseline; border: none; }
-table.sourceCode { width: 100%; line-height: 100%; }
-td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
-td.sourceCode { padding-left: 5px; }
-code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
-code > span.dt { color: #902000; } /* DataType */
-code > span.dv { color: #40a070; } /* DecVal */
-code > span.bn { color: #40a070; } /* BaseN */
-code > span.fl { color: #40a070; } /* Float */
-code > span.ch { color: #4070a0; } /* Char */
-code > span.st { color: #4070a0; } /* String */
-code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
-code > span.ot { color: #007020; } /* Other */
-code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
-code > span.fu { color: #06287e; } /* Function */
-code > span.er { color: #ff0000; font-weight: bold; } /* Error */
-code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
-code > span.cn { color: #880000; } /* Constant */
-code > span.sc { color: #4070a0; } /* SpecialChar */
-code > span.vs { color: #4070a0; } /* VerbatimString */
-code > span.ss { color: #bb6688; } /* SpecialString */
-code > span.im { } /* Import */
-code > span.va { color: #19177c; } /* Variable */
-code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-code > span.op { color: #666666; } /* Operator */
-code > span.bu { } /* BuiltIn */
-code > span.ex { } /* Extension */
-code > span.pp { color: #bc7a00; } /* Preprocessor */
-code > span.at { color: #7d9029; } /* Attribute */
-code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
-code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+<style type="text/css" data-origin="pandoc">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(data-line-number);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' || rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#header {
+text-align: center;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61717; background-color: #e3d2d2; } 
 </style>
 
 
 
-<link href="data:text/css;charset=utf-8,body%20%7B%0Abackground%2Dcolor%3A%20%23fff%3B%0Amargin%3A%201em%20auto%3B%0Amax%2Dwidth%3A%20700px%3B%0Aoverflow%3A%20visible%3B%0Apadding%2Dleft%3A%202em%3B%0Apadding%2Dright%3A%202em%3B%0Afont%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%201%2E35%3B%0A%7D%0A%23header%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0A%23TOC%20%7B%0Aclear%3A%20both%3B%0Amargin%3A%200%200%2010px%2010px%3B%0Apadding%3A%204px%3B%0Awidth%3A%20400px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Aborder%2Dradius%3A%205px%3B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Afont%2Dsize%3A%2013px%3B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%23TOC%20%2Etoctitle%20%7B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dsize%3A%2015px%3B%0Amargin%2Dleft%3A%205px%3B%0A%7D%0A%23TOC%20ul%20%7B%0Apadding%2Dleft%3A%2040px%3B%0Amargin%2Dleft%3A%20%2D1%2E5em%3B%0Amargin%2Dtop%3A%205px%3B%0Amargin%2Dbottom%3A%205px%3B%0A%7D%0A%23TOC%20ul%20ul%20%7B%0Amargin%2Dleft%3A%20%2D2em%3B%0A%7D%0A%23TOC%20li%20%7B%0Aline%2Dheight%3A%2016px%3B%0A%7D%0Atable%20%7B%0Amargin%3A%201em%20auto%3B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dcolor%3A%20%23DDDDDD%3B%0Aborder%2Dstyle%3A%20outset%3B%0Aborder%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0Aborder%2Dwidth%3A%202px%3B%0Apadding%3A%205px%3B%0Aborder%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dstyle%3A%20inset%3B%0Aline%2Dheight%3A%2018px%3B%0Apadding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0Aborder%2Dleft%2Dstyle%3A%20none%3B%0Aborder%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Ap%20%7B%0Amargin%3A%200%2E5em%200%3B%0A%7D%0Ablockquote%20%7B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Apadding%3A%200%2E25em%200%2E75em%3B%0A%7D%0Ahr%20%7B%0Aborder%2Dstyle%3A%20solid%3B%0Aborder%3A%20none%3B%0Aborder%2Dtop%3A%201px%20solid%20%23777%3B%0Amargin%3A%2028px%200%3B%0A%7D%0Adl%20%7B%0Amargin%2Dleft%3A%200%3B%0A%7D%0Adl%20dd%20%7B%0Amargin%2Dbottom%3A%2013px%3B%0Amargin%2Dleft%3A%2013px%3B%0A%7D%0Adl%20dt%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aul%20%7B%0Amargin%2Dtop%3A%200%3B%0A%7D%0Aul%20li%20%7B%0Alist%2Dstyle%3A%20circle%20outside%3B%0A%7D%0Aul%20ul%20%7B%0Amargin%2Dbottom%3A%200%3B%0A%7D%0Apre%2C%20code%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0Aborder%2Dradius%3A%203px%3B%0Acolor%3A%20%23333%3B%0Awhite%2Dspace%3A%20pre%2Dwrap%3B%20%0A%7D%0Apre%20%7B%0Aborder%2Dradius%3A%203px%3B%0Amargin%3A%205px%200px%2010px%200px%3B%0Apadding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Acode%20%7B%0Afont%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0Afont%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0Apadding%3A%202px%200px%3B%0A%7D%0Adiv%2Efigure%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0Abackground%2Dcolor%3A%20%23FFFFFF%3B%0Apadding%3A%202px%3B%0Aborder%3A%201px%20solid%20%23DDDDDD%3B%0Aborder%2Dradius%3A%203px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Amargin%3A%200%205px%3B%0A%7D%0Ah1%20%7B%0Amargin%2Dtop%3A%200%3B%0Afont%2Dsize%3A%2035px%3B%0Aline%2Dheight%3A%2040px%3B%0A%7D%0Ah2%20%7B%0Aborder%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Apadding%2Dbottom%3A%202px%3B%0Afont%2Dsize%3A%20145%25%3B%0A%7D%0Ah3%20%7B%0Aborder%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Afont%2Dsize%3A%20120%25%3B%0A%7D%0Ah4%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0Amargin%2Dleft%3A%208px%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Ah5%2C%20h6%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23ccc%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Aa%20%7B%0Acolor%3A%20%230033dd%3B%0Atext%2Ddecoration%3A%20none%3B%0A%7D%0Aa%3Ahover%20%7B%0Acolor%3A%20%236666ff%3B%20%7D%0Aa%3Avisited%20%7B%0Acolor%3A%20%23800080%3B%20%7D%0Aa%3Avisited%3Ahover%20%7B%0Acolor%3A%20%23BB00BB%3B%20%7D%0Aa%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Aa%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%20code%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%0A" rel="stylesheet" type="text/css" />
 
 </head>
 
@@ -69,23 +302,23 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 
 <h1 class="title toc-ignore">ProFit: Galaxy Fitting Example</h1>
-<h4 class="author"><em>Aaron Robotham &amp; Dan Taranu</em></h4>
-<h4 class="date"><em>2019-04-04</em></h4>
+<h4 class="author">Aaron Robotham &amp; Dan Taranu</h4>
+<h4 class="date">2019-07-23</h4>
 
 
 
 <p>Get the latest version of <strong>ProFit</strong>:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(devtools)
-<span class="kw">install_github</span>(<span class="st">'ICRAR/ProFit'</span>)</code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw">library</span>(devtools)</a>
+<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="kw">install_github</span>(<span class="st">'ICRAR/ProFit'</span>)</a></code></pre></div>
 <p>First load the libraries we need:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(ProFit)</code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="kw">library</span>(ProFit)</a></code></pre></div>
 <pre><code>## Loading required package: FITSio</code></pre>
 <pre><code>## Loading required package: magicaxis</code></pre>
 <div id="prepare-the-test-data" class="section level2">
 <h2>Prepare the test data</h2>
 <p>Next we load a table of data describing GAMA galaxies:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">data</span>(<span class="st">'ExampleInit'</span>, <span class="dt">package=</span><span class="st">&quot;ProFit&quot;</span>)
-<span class="kw">head</span>(ExampleInit, <span class="dv">10</span>)</code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1"><span class="kw">data</span>(<span class="st">'ExampleInit'</span>, <span class="dt">package=</span><span class="st">&quot;ProFit&quot;</span>)</a>
+<a class="sourceLine" id="cb5-2" data-line-number="2"><span class="kw">head</span>(ExampleInit, <span class="dv">10</span>)</a></code></pre></div>
 <pre><code>##    CATAID sersic.xcen1 sersic.ycen1 sersic.mag1 sersic.mag2 sersic.re1
 ## 1  265769     122.8069      87.3328    17.08907    17.08907    8.71420
 ## 2  265911      84.8832      94.5951    16.83217    16.83217    7.05740
@@ -109,40 +342,40 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 ## 9     22.7756       2.9550     56.3237        0.6222
 ## 10    73.3653       3.9704     94.4409        0.3477</code></pre>
 <p>There are 2 data source options: KiDS or SDSS (the galaxies are the same)</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">datasource=<span class="st">'KiDS'</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1">datasource=<span class="st">'KiDS'</span></a></code></pre></div>
 <p>Now we can extract out the example files we have available for fitting by checking the contents of the directory containing the example FITS files:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ExampleFiles=<span class="kw">list.files</span>(<span class="kw">system.file</span>(<span class="st">&quot;extdata&quot;</span>,datasource,<span class="dt">package=</span><span class="st">&quot;ProFit&quot;</span>))
-ExampleIDs=<span class="kw">unlist</span>(<span class="kw">strsplit</span>(ExampleFiles[<span class="kw">grep</span>(<span class="st">'fitim'</span>,ExampleFiles)],<span class="st">'fitim.fits'</span>))
-ExampleIDs</code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1">ExampleFiles=<span class="kw">list.files</span>(<span class="kw">system.file</span>(<span class="st">&quot;extdata&quot;</span>,datasource,<span class="dt">package=</span><span class="st">&quot;ProFit&quot;</span>))</a>
+<a class="sourceLine" id="cb8-2" data-line-number="2">ExampleIDs=<span class="kw">unlist</span>(<span class="kw">strsplit</span>(ExampleFiles[<span class="kw">grep</span>(<span class="st">'fitim'</span>,ExampleFiles)],<span class="st">'fitim.fits'</span>))</a>
+<a class="sourceLine" id="cb8-3" data-line-number="3">ExampleIDs</a></code></pre></div>
 <pre><code>##  [1] &quot;G265911&quot; &quot;G265940&quot; &quot;G266033&quot; &quot;G266035&quot; &quot;G266662&quot; &quot;G267199&quot; &quot;G267489&quot;
 ##  [8] &quot;G267525&quot; &quot;G278109&quot; &quot;G279148&quot;</code></pre>
 <p>There are 10 example galaxies included. Here we run example 1:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">useID=ExampleIDs[<span class="dv">1</span>]
-image=<span class="kw">readFITS</span>(<span class="kw">system.file</span>(<span class="st">&quot;extdata&quot;</span>, <span class="kw">paste</span>(datasource,<span class="st">'/'</span>,useID,<span class="st">'fitim.fits'</span>,<span class="dt">sep=</span><span class="st">''</span>),<span class="dt">package=</span><span class="st">&quot;ProFit&quot;</span>))<span class="op">$</span>imDat
-sigma=<span class="kw">readFITS</span>(<span class="kw">system.file</span>(<span class="st">&quot;extdata&quot;</span>, <span class="kw">paste</span>(datasource,<span class="st">'/'</span>,useID,<span class="st">'sigma.fits'</span>,<span class="dt">sep=</span><span class="st">''</span>),<span class="dt">package=</span><span class="st">&quot;ProFit&quot;</span>))<span class="op">$</span>imDat
-segim=<span class="kw">readFITS</span>(<span class="kw">system.file</span>(<span class="st">&quot;extdata&quot;</span>, <span class="kw">paste</span>(datasource,<span class="st">'/'</span>,useID,<span class="st">'segim.fits'</span>,<span class="dt">sep=</span><span class="st">''</span>),<span class="dt">package=</span><span class="st">&quot;ProFit&quot;</span>))<span class="op">$</span>imDat
-psf=<span class="kw">readFITS</span>(<span class="kw">system.file</span>(<span class="st">&quot;extdata&quot;</span>, <span class="kw">paste</span>(datasource,<span class="st">'/'</span>,useID,<span class="st">'psfim.fits'</span>,<span class="dt">sep=</span><span class="st">''</span>),<span class="dt">package=</span><span class="st">&quot;ProFit&quot;</span>))<span class="op">$</span>imDat</code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" data-line-number="1">useID=ExampleIDs[<span class="dv">1</span>]</a>
+<a class="sourceLine" id="cb10-2" data-line-number="2">image=<span class="kw">readFITS</span>(<span class="kw">system.file</span>(<span class="st">&quot;extdata&quot;</span>, <span class="kw">paste</span>(datasource,<span class="st">'/'</span>,useID,<span class="st">'fitim.fits'</span>,<span class="dt">sep=</span><span class="st">''</span>),<span class="dt">package=</span><span class="st">&quot;ProFit&quot;</span>))<span class="op">$</span>imDat</a>
+<a class="sourceLine" id="cb10-3" data-line-number="3">sigma=<span class="kw">readFITS</span>(<span class="kw">system.file</span>(<span class="st">&quot;extdata&quot;</span>, <span class="kw">paste</span>(datasource,<span class="st">'/'</span>,useID,<span class="st">'sigma.fits'</span>,<span class="dt">sep=</span><span class="st">''</span>),<span class="dt">package=</span><span class="st">&quot;ProFit&quot;</span>))<span class="op">$</span>imDat</a>
+<a class="sourceLine" id="cb10-4" data-line-number="4">segim=<span class="kw">readFITS</span>(<span class="kw">system.file</span>(<span class="st">&quot;extdata&quot;</span>, <span class="kw">paste</span>(datasource,<span class="st">'/'</span>,useID,<span class="st">'segim.fits'</span>,<span class="dt">sep=</span><span class="st">''</span>),<span class="dt">package=</span><span class="st">&quot;ProFit&quot;</span>))<span class="op">$</span>imDat</a>
+<a class="sourceLine" id="cb10-5" data-line-number="5">psf=<span class="kw">readFITS</span>(<span class="kw">system.file</span>(<span class="st">&quot;extdata&quot;</span>, <span class="kw">paste</span>(datasource,<span class="st">'/'</span>,useID,<span class="st">'psfim.fits'</span>,<span class="dt">sep=</span><span class="st">''</span>),<span class="dt">package=</span><span class="st">&quot;ProFit&quot;</span>))<span class="op">$</span>imDat</a></code></pre></div>
 <p>Next we extract parameters for a very rough model (not meant to look too good yet):</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">useIDnum=<span class="kw">as.integer</span>(<span class="kw">strsplit</span>(useID,<span class="st">'G'</span>)[[<span class="dv">1</span>]][<span class="dv">2</span>])
-useloc=<span class="kw">which</span>(ExampleInit<span class="op">$</span>CATAID<span class="op">==</span>useIDnum)</code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" data-line-number="1">useIDnum=<span class="kw">as.integer</span>(<span class="kw">strsplit</span>(useID,<span class="st">'G'</span>)[[<span class="dv">1</span>]][<span class="dv">2</span>])</a>
+<a class="sourceLine" id="cb11-2" data-line-number="2">useloc=<span class="kw">which</span>(ExampleInit<span class="op">$</span>CATAID<span class="op">==</span>useIDnum)</a></code></pre></div>
 </div>
 <div id="setup-the-fitting-data-structures" class="section level2">
 <h2>Setup the fitting data structures</h2>
 <p>For our initial model we treat component 1 as the putative bulge and component 2 as the putative disk. We are going to attempt a fit where the disk is forced to have nser=1 and the bulge has an axial ratio of 1.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">modellist=<span class="kw">list</span>(
-  <span class="dt">sersic=</span><span class="kw">list</span>(
-    <span class="dt">xcen=</span> <span class="kw">c</span>(<span class="kw">dim</span>(image)[<span class="dv">1</span>]<span class="op">/</span><span class="dv">2</span>, <span class="kw">dim</span>(image)[<span class="dv">1</span>]<span class="op">/</span><span class="dv">2</span>),
-    <span class="dt">ycen=</span> <span class="kw">c</span>(<span class="kw">dim</span>(image)[<span class="dv">2</span>]<span class="op">/</span><span class="dv">2</span>, <span class="kw">dim</span>(image)[<span class="dv">2</span>]<span class="op">/</span><span class="dv">2</span>),
-    <span class="dt">mag=</span> <span class="kw">c</span>(ExampleInit<span class="op">$</span>sersic.mag1[useloc], ExampleInit<span class="op">$</span>sersic.mag2[useloc]),
-    <span class="dt">re=</span> <span class="kw">c</span>(ExampleInit<span class="op">$</span>sersic.re1[useloc], ExampleInit<span class="op">$</span>sersic.re2[useloc])<span class="op">*</span>
-<span class="st">      </span><span class="cf">if</span>(datasource<span class="op">==</span><span class="st">'KiDS'</span>){<span class="dv">1</span>}<span class="cf">else</span>{<span class="fl">0.2</span><span class="op">/</span><span class="fl">0.339</span>},
-    <span class="dt">nser=</span> <span class="kw">c</span>(ExampleInit<span class="op">$</span>sersic.nser1[useloc], <span class="dv">1</span>),  <span class="co">#Disk is initially nser=1</span>
-    <span class="dt">ang=</span> <span class="kw">c</span>(ExampleInit<span class="op">$</span>sersic.ang2[useloc], ExampleInit<span class="op">$</span>sersic.ang2[useloc]),
-    <span class="dt">axrat=</span> <span class="kw">c</span>(<span class="dv">1</span>, ExampleInit<span class="op">$</span>sersic.axrat2[useloc]),  <span class="co">#Bulge is initially axrat=1</span>
-    <span class="dt">box=</span><span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">0</span>)
-  )
-)
-modellist</code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" data-line-number="1">modellist=<span class="kw">list</span>(</a>
+<a class="sourceLine" id="cb12-2" data-line-number="2">  <span class="dt">sersic=</span><span class="kw">list</span>(</a>
+<a class="sourceLine" id="cb12-3" data-line-number="3">    <span class="dt">xcen=</span> <span class="kw">c</span>(<span class="kw">dim</span>(image)[<span class="dv">1</span>]<span class="op">/</span><span class="dv">2</span>, <span class="kw">dim</span>(image)[<span class="dv">1</span>]<span class="op">/</span><span class="dv">2</span>),</a>
+<a class="sourceLine" id="cb12-4" data-line-number="4">    <span class="dt">ycen=</span> <span class="kw">c</span>(<span class="kw">dim</span>(image)[<span class="dv">2</span>]<span class="op">/</span><span class="dv">2</span>, <span class="kw">dim</span>(image)[<span class="dv">2</span>]<span class="op">/</span><span class="dv">2</span>),</a>
+<a class="sourceLine" id="cb12-5" data-line-number="5">    <span class="dt">mag=</span> <span class="kw">c</span>(ExampleInit<span class="op">$</span>sersic.mag1[useloc], ExampleInit<span class="op">$</span>sersic.mag2[useloc]),</a>
+<a class="sourceLine" id="cb12-6" data-line-number="6">    <span class="dt">re=</span> <span class="kw">c</span>(ExampleInit<span class="op">$</span>sersic.re1[useloc], ExampleInit<span class="op">$</span>sersic.re2[useloc])<span class="op">*</span></a>
+<a class="sourceLine" id="cb12-7" data-line-number="7"><span class="st">      </span><span class="cf">if</span>(datasource<span class="op">==</span><span class="st">'KiDS'</span>){<span class="dv">1</span>}<span class="cf">else</span>{<span class="fl">0.2</span><span class="op">/</span><span class="fl">0.339</span>},</a>
+<a class="sourceLine" id="cb12-8" data-line-number="8">    <span class="dt">nser=</span> <span class="kw">c</span>(ExampleInit<span class="op">$</span>sersic.nser1[useloc], <span class="dv">1</span>),  <span class="co">#Disk is initially nser=1</span></a>
+<a class="sourceLine" id="cb12-9" data-line-number="9">    <span class="dt">ang=</span> <span class="kw">c</span>(ExampleInit<span class="op">$</span>sersic.ang2[useloc], ExampleInit<span class="op">$</span>sersic.ang2[useloc]),</a>
+<a class="sourceLine" id="cb12-10" data-line-number="10">    <span class="dt">axrat=</span> <span class="kw">c</span>(<span class="dv">1</span>, ExampleInit<span class="op">$</span>sersic.axrat2[useloc]),  <span class="co">#Bulge is initially axrat=1</span></a>
+<a class="sourceLine" id="cb12-11" data-line-number="11">    <span class="dt">box=</span><span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">0</span>)</a>
+<a class="sourceLine" id="cb12-12" data-line-number="12">  )</a>
+<a class="sourceLine" id="cb12-13" data-line-number="13">)</a>
+<a class="sourceLine" id="cb12-14" data-line-number="14">modellist</a></code></pre></div>
 <pre><code>## $sersic
 ## $sersic$xcen
 ## [1] 84.5 84.5
@@ -168,88 +401,88 @@ modellist</code></pre></div>
 ## $sersic$box
 ## [1] 0 0</code></pre>
 <p>The pure model (no PSF):</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">magimage</span>(<span class="kw">profitMakeModel</span>(modellist,<span class="dt">dim=</span><span class="kw">dim</span>(image)))</code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" data-line-number="1"><span class="kw">magimage</span>(<span class="kw">profitMakeModel</span>(modellist,<span class="dt">dim=</span><span class="kw">dim</span>(image)))</a></code></pre></div>
 <p>The original image:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">magimage</span>(image)</code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" data-line-number="1"><span class="kw">magimage</span>(image)</a></code></pre></div>
 <p>The convolved model (with PSF):</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">magimage</span>(<span class="kw">profitMakeModel</span>(modellist,<span class="dt">dim=</span><span class="kw">dim</span>(image),<span class="dt">psf=</span>psf))</code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb16-1" data-line-number="1"><span class="kw">magimage</span>(<span class="kw">profitMakeModel</span>(modellist,<span class="dt">dim=</span><span class="kw">dim</span>(image),<span class="dt">psf=</span>psf))</a></code></pre></div>
 <p>Next we define our list of what we want to fit (where TRUE means we will fit it later):</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">tofit=<span class="kw">list</span>(
-  <span class="dt">sersic=</span><span class="kw">list</span>(
-    <span class="dt">xcen=</span> <span class="kw">c</span>(<span class="ot">TRUE</span>,<span class="ot">NA</span>), <span class="co">#We fit for xcen and tie the two togther</span>
-    <span class="dt">ycen=</span> <span class="kw">c</span>(<span class="ot">TRUE</span>,<span class="ot">NA</span>), <span class="co">#We fit for ycen and tie the two togther</span>
-    <span class="dt">mag=</span> <span class="kw">c</span>(<span class="ot">TRUE</span>,<span class="ot">TRUE</span>), <span class="co">#Fit for both</span>
-    <span class="dt">re=</span> <span class="kw">c</span>(<span class="ot">TRUE</span>,<span class="ot">TRUE</span>), <span class="co">#Fit for both</span>
-    <span class="dt">nser=</span> <span class="kw">c</span>(<span class="ot">TRUE</span>,<span class="ot">FALSE</span>), <span class="co">#Fit for bulge</span>
-    <span class="dt">ang=</span> <span class="kw">c</span>(<span class="ot">FALSE</span>,<span class="ot">TRUE</span>), <span class="co">#Fit for disk</span>
-    <span class="dt">axrat=</span> <span class="kw">c</span>(<span class="ot">FALSE</span>,<span class="ot">TRUE</span>), <span class="co">#Fit for disk</span>
-    <span class="dt">box=</span> <span class="kw">c</span>(<span class="ot">FALSE</span>,<span class="ot">FALSE</span>) <span class="co">#Fit for neither</span>
-  )
-)</code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" data-line-number="1">tofit=<span class="kw">list</span>(</a>
+<a class="sourceLine" id="cb17-2" data-line-number="2">  <span class="dt">sersic=</span><span class="kw">list</span>(</a>
+<a class="sourceLine" id="cb17-3" data-line-number="3">    <span class="dt">xcen=</span> <span class="kw">c</span>(<span class="ot">TRUE</span>,<span class="ot">NA</span>), <span class="co">#We fit for xcen and tie the two togther</span></a>
+<a class="sourceLine" id="cb17-4" data-line-number="4">    <span class="dt">ycen=</span> <span class="kw">c</span>(<span class="ot">TRUE</span>,<span class="ot">NA</span>), <span class="co">#We fit for ycen and tie the two togther</span></a>
+<a class="sourceLine" id="cb17-5" data-line-number="5">    <span class="dt">mag=</span> <span class="kw">c</span>(<span class="ot">TRUE</span>,<span class="ot">TRUE</span>), <span class="co">#Fit for both</span></a>
+<a class="sourceLine" id="cb17-6" data-line-number="6">    <span class="dt">re=</span> <span class="kw">c</span>(<span class="ot">TRUE</span>,<span class="ot">TRUE</span>), <span class="co">#Fit for both</span></a>
+<a class="sourceLine" id="cb17-7" data-line-number="7">    <span class="dt">nser=</span> <span class="kw">c</span>(<span class="ot">TRUE</span>,<span class="ot">FALSE</span>), <span class="co">#Fit for bulge</span></a>
+<a class="sourceLine" id="cb17-8" data-line-number="8">    <span class="dt">ang=</span> <span class="kw">c</span>(<span class="ot">FALSE</span>,<span class="ot">TRUE</span>), <span class="co">#Fit for disk</span></a>
+<a class="sourceLine" id="cb17-9" data-line-number="9">    <span class="dt">axrat=</span> <span class="kw">c</span>(<span class="ot">FALSE</span>,<span class="ot">TRUE</span>), <span class="co">#Fit for disk</span></a>
+<a class="sourceLine" id="cb17-10" data-line-number="10">    <span class="dt">box=</span> <span class="kw">c</span>(<span class="ot">FALSE</span>,<span class="ot">FALSE</span>) <span class="co">#Fit for neither</span></a>
+<a class="sourceLine" id="cb17-11" data-line-number="11">  )</a>
+<a class="sourceLine" id="cb17-12" data-line-number="12">)</a></code></pre></div>
 <p>Now we define what parameters should be fitted in log space:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">tolog=<span class="kw">list</span>(
-  <span class="dt">sersic=</span><span class="kw">list</span>(
-    <span class="dt">xcen=</span> <span class="kw">c</span>(<span class="ot">FALSE</span>,<span class="ot">FALSE</span>),
-    <span class="dt">ycen=</span> <span class="kw">c</span>(<span class="ot">FALSE</span>,<span class="ot">FALSE</span>),
-    <span class="dt">mag=</span> <span class="kw">c</span>(<span class="ot">FALSE</span>,<span class="ot">FALSE</span>),
-    <span class="dt">re=</span> <span class="kw">c</span>(<span class="ot">TRUE</span>,<span class="ot">TRUE</span>), <span class="co">#re is best fit in log space</span>
-    <span class="dt">nser=</span> <span class="kw">c</span>(<span class="ot">TRUE</span>,<span class="ot">TRUE</span>), <span class="co">#nser is best fit in log space</span>
-    <span class="dt">ang=</span> <span class="kw">c</span>(<span class="ot">FALSE</span>,<span class="ot">FALSE</span>),
-    <span class="dt">axrat=</span> <span class="kw">c</span>(<span class="ot">TRUE</span>,<span class="ot">TRUE</span>), <span class="co">#axrat is best fit in log space</span>
-    <span class="dt">box=</span> <span class="kw">c</span>(<span class="ot">FALSE</span>,<span class="ot">FALSE</span>)
-  )
-)</code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb18-1" data-line-number="1">tolog=<span class="kw">list</span>(</a>
+<a class="sourceLine" id="cb18-2" data-line-number="2">  <span class="dt">sersic=</span><span class="kw">list</span>(</a>
+<a class="sourceLine" id="cb18-3" data-line-number="3">    <span class="dt">xcen=</span> <span class="kw">c</span>(<span class="ot">FALSE</span>,<span class="ot">FALSE</span>),</a>
+<a class="sourceLine" id="cb18-4" data-line-number="4">    <span class="dt">ycen=</span> <span class="kw">c</span>(<span class="ot">FALSE</span>,<span class="ot">FALSE</span>),</a>
+<a class="sourceLine" id="cb18-5" data-line-number="5">    <span class="dt">mag=</span> <span class="kw">c</span>(<span class="ot">FALSE</span>,<span class="ot">FALSE</span>),</a>
+<a class="sourceLine" id="cb18-6" data-line-number="6">    <span class="dt">re=</span> <span class="kw">c</span>(<span class="ot">TRUE</span>,<span class="ot">TRUE</span>), <span class="co">#re is best fit in log space</span></a>
+<a class="sourceLine" id="cb18-7" data-line-number="7">    <span class="dt">nser=</span> <span class="kw">c</span>(<span class="ot">TRUE</span>,<span class="ot">TRUE</span>), <span class="co">#nser is best fit in log space</span></a>
+<a class="sourceLine" id="cb18-8" data-line-number="8">    <span class="dt">ang=</span> <span class="kw">c</span>(<span class="ot">FALSE</span>,<span class="ot">FALSE</span>),</a>
+<a class="sourceLine" id="cb18-9" data-line-number="9">    <span class="dt">axrat=</span> <span class="kw">c</span>(<span class="ot">TRUE</span>,<span class="ot">TRUE</span>), <span class="co">#axrat is best fit in log space</span></a>
+<a class="sourceLine" id="cb18-10" data-line-number="10">    <span class="dt">box=</span> <span class="kw">c</span>(<span class="ot">FALSE</span>,<span class="ot">FALSE</span>)</a>
+<a class="sourceLine" id="cb18-11" data-line-number="11">  )</a>
+<a class="sourceLine" id="cb18-12" data-line-number="12">)</a></code></pre></div>
 <p>Now we specify the priors object. The priors object is really a function that takes modellist as an input and returns an addative log-likelihood sum that increments the total log-likelihood for the current realisation of the model.</p>
 <p>The elements you access within the modellist structure must really exist or ProFit will stop with an error. The modellist used internally will be the linear (un-logged version), so logging must be made within the function if, e.g., log-normal distributions are required. You do not have to apply priors to each parameter- notice below a few are left out.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">priors=<span class="cf">function</span>(new,init,<span class="dt">sigmas=</span><span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">5</span>,<span class="dv">5</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">30</span>,<span class="dv">30</span>,<span class="fl">0.3</span>,<span class="fl">0.3</span>)){
-  LL=<span class="kw">sum</span>(
-      <span class="kw">dnorm</span>(new<span class="op">$</span>sersic<span class="op">$</span>xcen,init<span class="op">$</span>sersic<span class="op">$</span>xcen,sigmas[<span class="dv">1</span><span class="op">:</span><span class="dv">2</span>],<span class="dt">log=</span><span class="ot">TRUE</span>),
-      <span class="kw">dnorm</span>(new<span class="op">$</span>sersic<span class="op">$</span>ycen,init<span class="op">$</span>sersic<span class="op">$</span>ycen,sigmas[<span class="dv">3</span><span class="op">:</span><span class="dv">4</span>],<span class="dt">log=</span><span class="ot">TRUE</span>),
-      <span class="kw">dnorm</span>(new<span class="op">$</span>sersic<span class="op">$</span>mag,init<span class="op">$</span>sersic<span class="op">$</span>mag,sigmas[<span class="dv">5</span><span class="op">:</span><span class="dv">6</span>],<span class="dt">log=</span><span class="ot">TRUE</span>),
-      <span class="kw">dnorm</span>(<span class="kw">log10</span>(new<span class="op">$</span>sersic<span class="op">$</span>re),<span class="kw">log10</span>(init<span class="op">$</span>sersic<span class="op">$</span>re),sigmas[<span class="dv">7</span><span class="op">:</span><span class="dv">8</span>],<span class="dt">log=</span><span class="ot">TRUE</span>),
-      <span class="kw">dnorm</span>(<span class="kw">log10</span>(new<span class="op">$</span>sersic<span class="op">$</span>nser),<span class="kw">log10</span>(init<span class="op">$</span>sersic<span class="op">$</span>nser),sigmas[<span class="dv">9</span><span class="op">:</span><span class="dv">10</span>],<span class="dt">log=</span><span class="ot">TRUE</span>),
-      <span class="kw">dnorm</span>(<span class="kw">log10</span>(new<span class="op">$</span>sersic<span class="op">$</span>axrat),<span class="kw">log10</span>(init<span class="op">$</span>sersic<span class="op">$</span>axrat),sigmas[<span class="dv">13</span><span class="op">:</span><span class="dv">14</span>],<span class="dt">log=</span><span class="ot">TRUE</span>)
-  )
-  <span class="kw">return</span>(LL)
-}
-<span class="kw">print</span>(<span class="kw">priors</span>(modellist,modellist))</code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb19-1" data-line-number="1">priors=<span class="cf">function</span>(new,init,<span class="dt">sigmas=</span><span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">5</span>,<span class="dv">5</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">30</span>,<span class="dv">30</span>,<span class="fl">0.3</span>,<span class="fl">0.3</span>)){</a>
+<a class="sourceLine" id="cb19-2" data-line-number="2">  LL=<span class="kw">sum</span>(</a>
+<a class="sourceLine" id="cb19-3" data-line-number="3">      <span class="kw">dnorm</span>(new<span class="op">$</span>sersic<span class="op">$</span>xcen,init<span class="op">$</span>sersic<span class="op">$</span>xcen,sigmas[<span class="dv">1</span><span class="op">:</span><span class="dv">2</span>],<span class="dt">log=</span><span class="ot">TRUE</span>),</a>
+<a class="sourceLine" id="cb19-4" data-line-number="4">      <span class="kw">dnorm</span>(new<span class="op">$</span>sersic<span class="op">$</span>ycen,init<span class="op">$</span>sersic<span class="op">$</span>ycen,sigmas[<span class="dv">3</span><span class="op">:</span><span class="dv">4</span>],<span class="dt">log=</span><span class="ot">TRUE</span>),</a>
+<a class="sourceLine" id="cb19-5" data-line-number="5">      <span class="kw">dnorm</span>(new<span class="op">$</span>sersic<span class="op">$</span>mag,init<span class="op">$</span>sersic<span class="op">$</span>mag,sigmas[<span class="dv">5</span><span class="op">:</span><span class="dv">6</span>],<span class="dt">log=</span><span class="ot">TRUE</span>),</a>
+<a class="sourceLine" id="cb19-6" data-line-number="6">      <span class="kw">dnorm</span>(<span class="kw">log10</span>(new<span class="op">$</span>sersic<span class="op">$</span>re),<span class="kw">log10</span>(init<span class="op">$</span>sersic<span class="op">$</span>re),sigmas[<span class="dv">7</span><span class="op">:</span><span class="dv">8</span>],<span class="dt">log=</span><span class="ot">TRUE</span>),</a>
+<a class="sourceLine" id="cb19-7" data-line-number="7">      <span class="kw">dnorm</span>(<span class="kw">log10</span>(new<span class="op">$</span>sersic<span class="op">$</span>nser),<span class="kw">log10</span>(init<span class="op">$</span>sersic<span class="op">$</span>nser),sigmas[<span class="dv">9</span><span class="op">:</span><span class="dv">10</span>],<span class="dt">log=</span><span class="ot">TRUE</span>),</a>
+<a class="sourceLine" id="cb19-8" data-line-number="8">      <span class="kw">dnorm</span>(<span class="kw">log10</span>(new<span class="op">$</span>sersic<span class="op">$</span>axrat),<span class="kw">log10</span>(init<span class="op">$</span>sersic<span class="op">$</span>axrat),sigmas[<span class="dv">13</span><span class="op">:</span><span class="dv">14</span>],<span class="dt">log=</span><span class="ot">TRUE</span>)</a>
+<a class="sourceLine" id="cb19-9" data-line-number="9">  )</a>
+<a class="sourceLine" id="cb19-10" data-line-number="10">  <span class="kw">return</span>(LL)</a>
+<a class="sourceLine" id="cb19-11" data-line-number="11">}</a>
+<a class="sourceLine" id="cb19-12" data-line-number="12"><span class="kw">print</span>(<span class="kw">priors</span>(modellist,modellist))</a></code></pre></div>
 <pre><code>## [1] -14.61078</code></pre>
 <p>Notice that the values for sigmas were defined along with the function definition. In practice, you may want to define them separately as such:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">sigmavec=<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">5</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">30</span>,<span class="fl">0.3</span>,<span class="fl">0.2</span>)
-priors=<span class="cf">function</span>(new,init,<span class="dt">sigmas=</span>sigmavec){
-  <span class="kw">return</span>(<span class="kw">sum</span>(<span class="dv">2</span><span class="op">*</span><span class="kw">dnorm</span>(<span class="kw">log10</span>(new<span class="op">$</span>sersic<span class="op">$</span>re),<span class="kw">log10</span>(init<span class="op">$</span>sersic<span class="op">$</span>re),sigmas[<span class="dv">4</span>],<span class="dt">log=</span><span class="ot">TRUE</span>)))
-}
-<span class="kw">print</span>(<span class="kw">priors</span>(modellist,modellist))</code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb21-1" data-line-number="1">sigmavec=<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">5</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">30</span>,<span class="fl">0.3</span>,<span class="fl">0.2</span>)</a>
+<a class="sourceLine" id="cb21-2" data-line-number="2">priors=<span class="cf">function</span>(new,init,<span class="dt">sigmas=</span>sigmavec){</a>
+<a class="sourceLine" id="cb21-3" data-line-number="3">  <span class="kw">return</span>(<span class="kw">sum</span>(<span class="dv">2</span><span class="op">*</span><span class="kw">dnorm</span>(<span class="kw">log10</span>(new<span class="op">$</span>sersic<span class="op">$</span>re),<span class="kw">log10</span>(init<span class="op">$</span>sersic<span class="op">$</span>re),sigmas[<span class="dv">4</span>],<span class="dt">log=</span><span class="ot">TRUE</span>)))</a>
+<a class="sourceLine" id="cb21-4" data-line-number="4">}</a>
+<a class="sourceLine" id="cb21-5" data-line-number="5"><span class="kw">print</span>(<span class="kw">priors</span>(modellist,modellist))</a></code></pre></div>
 <pre><code>## [1] -3.675754</code></pre>
 <p>Unfortunately, R does not store the provided values of sigmas, but simply the name of a variable sigma, so if you happen to redefine sigma later on, the prior function will change (or fail entirely if you delete sigma or save and then load a fit):</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">sigmavec=sigmavec<span class="op">/</span><span class="dv">2</span>
-<span class="kw">print</span>(<span class="kw">priors</span>(modellist,modellist))</code></pre></div>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb23-1" data-line-number="1">sigmavec=sigmavec<span class="op">/</span><span class="dv">2</span></a>
+<a class="sourceLine" id="cb23-2" data-line-number="2"><span class="kw">print</span>(<span class="kw">priors</span>(modellist,modellist))</a></code></pre></div>
 <pre><code>## [1] -0.9031654</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">print</span>(priors)</code></pre></div>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb25-1" data-line-number="1"><span class="kw">print</span>(priors)</a></code></pre></div>
 <pre><code>## function(new,init,sigmas=sigmavec){
 ##   return(sum(2*dnorm(log10(new$sersic$re),log10(init$sersic$re),sigmas[4],log=TRUE)))
 ## }
-## &lt;bytecode: 0x7fe3808911c8&gt;</code></pre>
+## &lt;bytecode: 0x7f9975f19eb0&gt;</code></pre>
 <p>Because of this issue, we provide a utility function to create a valid prior function, saving the values of the prior distributions:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">sigmas=<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">5</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">30</span>,<span class="fl">0.3</span>,<span class="ot">Inf</span>)
-
-sigmas=<span class="kw">list</span>(
-  <span class="dt">sersic=</span><span class="kw">list</span>(
-    <span class="dt">xcen=</span> <span class="kw">numeric</span>(<span class="dv">2</span>)<span class="op">+</span>sigmas[<span class="dv">1</span>],
-    <span class="dt">ycen=</span> <span class="kw">numeric</span>(<span class="dv">2</span>)<span class="op">+</span>sigmas[<span class="dv">2</span>],
-    <span class="dt">mag=</span> <span class="kw">numeric</span>(<span class="dv">2</span>)<span class="op">+</span>sigmas[<span class="dv">3</span>],
-    <span class="dt">re=</span> <span class="kw">numeric</span>(<span class="dv">2</span>)<span class="op">+</span>sigmas[<span class="dv">4</span>],
-    <span class="dt">nser=</span> <span class="kw">numeric</span>(<span class="dv">2</span>)<span class="op">+</span>sigmas[<span class="dv">5</span>],
-    <span class="dt">ang=</span> <span class="kw">numeric</span>(<span class="dv">2</span>)<span class="op">+</span>sigmas[<span class="dv">6</span>],
-    <span class="dt">axrat=</span> <span class="kw">numeric</span>(<span class="dv">2</span>)<span class="op">+</span>sigmas[<span class="dv">7</span>],
-    <span class="dt">box=</span> <span class="kw">numeric</span>(<span class="dv">2</span>)<span class="op">+</span>sigmas[<span class="dv">8</span>]
-  )
-)
-
-priors=<span class="kw">profitMakePriors</span>(modellist, sigmas, tolog, <span class="dt">allowflat=</span><span class="ot">TRUE</span>)
-<span class="kw">print</span>(<span class="kw">priors</span>(modellist,modellist))</code></pre></div>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb27-1" data-line-number="1">sigmas=<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">5</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">30</span>,<span class="fl">0.3</span>,<span class="ot">Inf</span>)</a>
+<a class="sourceLine" id="cb27-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb27-3" data-line-number="3">sigmas=<span class="kw">list</span>(</a>
+<a class="sourceLine" id="cb27-4" data-line-number="4">  <span class="dt">sersic=</span><span class="kw">list</span>(</a>
+<a class="sourceLine" id="cb27-5" data-line-number="5">    <span class="dt">xcen=</span> <span class="kw">numeric</span>(<span class="dv">2</span>)<span class="op">+</span>sigmas[<span class="dv">1</span>],</a>
+<a class="sourceLine" id="cb27-6" data-line-number="6">    <span class="dt">ycen=</span> <span class="kw">numeric</span>(<span class="dv">2</span>)<span class="op">+</span>sigmas[<span class="dv">2</span>],</a>
+<a class="sourceLine" id="cb27-7" data-line-number="7">    <span class="dt">mag=</span> <span class="kw">numeric</span>(<span class="dv">2</span>)<span class="op">+</span>sigmas[<span class="dv">3</span>],</a>
+<a class="sourceLine" id="cb27-8" data-line-number="8">    <span class="dt">re=</span> <span class="kw">numeric</span>(<span class="dv">2</span>)<span class="op">+</span>sigmas[<span class="dv">4</span>],</a>
+<a class="sourceLine" id="cb27-9" data-line-number="9">    <span class="dt">nser=</span> <span class="kw">numeric</span>(<span class="dv">2</span>)<span class="op">+</span>sigmas[<span class="dv">5</span>],</a>
+<a class="sourceLine" id="cb27-10" data-line-number="10">    <span class="dt">ang=</span> <span class="kw">numeric</span>(<span class="dv">2</span>)<span class="op">+</span>sigmas[<span class="dv">6</span>],</a>
+<a class="sourceLine" id="cb27-11" data-line-number="11">    <span class="dt">axrat=</span> <span class="kw">numeric</span>(<span class="dv">2</span>)<span class="op">+</span>sigmas[<span class="dv">7</span>],</a>
+<a class="sourceLine" id="cb27-12" data-line-number="12">    <span class="dt">box=</span> <span class="kw">numeric</span>(<span class="dv">2</span>)<span class="op">+</span>sigmas[<span class="dv">8</span>]</a>
+<a class="sourceLine" id="cb27-13" data-line-number="13">  )</a>
+<a class="sourceLine" id="cb27-14" data-line-number="14">)</a>
+<a class="sourceLine" id="cb27-15" data-line-number="15"></a>
+<a class="sourceLine" id="cb27-16" data-line-number="16">priors=<span class="kw">profitMakePriors</span>(modellist, sigmas, tolog, <span class="dt">allowflat=</span><span class="ot">TRUE</span>)</a>
+<a class="sourceLine" id="cb27-17" data-line-number="17"><span class="kw">print</span>(<span class="kw">priors</span>(modellist,modellist))</a></code></pre></div>
 <pre><code>## [1] -23.25105</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">print</span>(priors)</code></pre></div>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb29-1" data-line-number="1"><span class="kw">print</span>(priors)</a></code></pre></div>
 <pre><code>## function (new, init, sigmas = c(sersic.xcen1 = 2, sersic.xcen2 = 2, 
 ## sersic.ycen1 = 2, sersic.ycen2 = 2, sersic.mag1 = 5, sersic.mag2 = 5, 
 ## sersic.re1 = 1, sersic.re2 = 1, sersic.nser1 = 1, sersic.nser2 = 1, 
@@ -280,37 +513,37 @@ priors=<span class="kw">profitMakePriors</span>(modellist, sigmas, tolog, <span 
 ##     }
 ##     return = LL
 ## }
-## &lt;bytecode: 0x7fe38012e0d0&gt;</code></pre>
+## &lt;bytecode: 0x7f9977431898&gt;</code></pre>
 <p>The hard intervals should also be specified in linear space:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">intervals=<span class="kw">list</span>(
-  <span class="dt">sersic=</span><span class="kw">list</span>(
-    <span class="dt">xcen=</span><span class="kw">list</span>(<span class="dt">lim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">300</span>),<span class="dt">lim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">300</span>)),
-    <span class="dt">ycen=</span><span class="kw">list</span>(<span class="dt">lim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">300</span>),<span class="dt">lim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">300</span>)),
-    <span class="dt">mag=</span><span class="kw">list</span>(<span class="dt">lim=</span><span class="kw">c</span>(<span class="dv">10</span>,<span class="dv">30</span>),<span class="dt">lim=</span><span class="kw">c</span>(<span class="dv">10</span>,<span class="dv">30</span>)),
-    <span class="dt">re=</span><span class="kw">list</span>(<span class="dt">lim=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">100</span>),<span class="dt">lim=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">100</span>)),
-    <span class="dt">nser=</span><span class="kw">list</span>(<span class="dt">lim=</span><span class="kw">c</span>(<span class="fl">0.5</span>,<span class="dv">20</span>),<span class="dt">lim=</span><span class="kw">c</span>(<span class="fl">0.5</span>,<span class="dv">20</span>)),
-    <span class="dt">ang=</span><span class="kw">list</span>(<span class="dt">lim=</span><span class="kw">c</span>(<span class="op">-</span><span class="dv">180</span>,<span class="dv">360</span>),<span class="dt">lim=</span><span class="kw">c</span>(<span class="op">-</span><span class="dv">180</span>,<span class="dv">360</span>)),
-    <span class="dt">axrat=</span><span class="kw">list</span>(<span class="dt">lim=</span><span class="kw">c</span>(<span class="fl">0.1</span>,<span class="dv">1</span>),<span class="dt">lim=</span><span class="kw">c</span>(<span class="fl">0.1</span>,<span class="dv">1</span>)),
-    <span class="dt">box=</span><span class="kw">list</span>(<span class="dt">lim=</span><span class="kw">c</span>(<span class="op">-</span><span class="dv">1</span>,<span class="dv">1</span>),<span class="dt">lim=</span><span class="kw">c</span>(<span class="op">-</span><span class="dv">1</span>,<span class="dv">1</span>))
-  )
-)</code></pre></div>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb31-1" data-line-number="1">intervals=<span class="kw">list</span>(</a>
+<a class="sourceLine" id="cb31-2" data-line-number="2">  <span class="dt">sersic=</span><span class="kw">list</span>(</a>
+<a class="sourceLine" id="cb31-3" data-line-number="3">    <span class="dt">xcen=</span><span class="kw">list</span>(<span class="dt">lim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">300</span>),<span class="dt">lim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">300</span>)),</a>
+<a class="sourceLine" id="cb31-4" data-line-number="4">    <span class="dt">ycen=</span><span class="kw">list</span>(<span class="dt">lim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">300</span>),<span class="dt">lim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">300</span>)),</a>
+<a class="sourceLine" id="cb31-5" data-line-number="5">    <span class="dt">mag=</span><span class="kw">list</span>(<span class="dt">lim=</span><span class="kw">c</span>(<span class="dv">10</span>,<span class="dv">30</span>),<span class="dt">lim=</span><span class="kw">c</span>(<span class="dv">10</span>,<span class="dv">30</span>)),</a>
+<a class="sourceLine" id="cb31-6" data-line-number="6">    <span class="dt">re=</span><span class="kw">list</span>(<span class="dt">lim=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">100</span>),<span class="dt">lim=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">100</span>)),</a>
+<a class="sourceLine" id="cb31-7" data-line-number="7">    <span class="dt">nser=</span><span class="kw">list</span>(<span class="dt">lim=</span><span class="kw">c</span>(<span class="fl">0.5</span>,<span class="dv">20</span>),<span class="dt">lim=</span><span class="kw">c</span>(<span class="fl">0.5</span>,<span class="dv">20</span>)),</a>
+<a class="sourceLine" id="cb31-8" data-line-number="8">    <span class="dt">ang=</span><span class="kw">list</span>(<span class="dt">lim=</span><span class="kw">c</span>(<span class="op">-</span><span class="dv">180</span>,<span class="dv">360</span>),<span class="dt">lim=</span><span class="kw">c</span>(<span class="op">-</span><span class="dv">180</span>,<span class="dv">360</span>)),</a>
+<a class="sourceLine" id="cb31-9" data-line-number="9">    <span class="dt">axrat=</span><span class="kw">list</span>(<span class="dt">lim=</span><span class="kw">c</span>(<span class="fl">0.1</span>,<span class="dv">1</span>),<span class="dt">lim=</span><span class="kw">c</span>(<span class="fl">0.1</span>,<span class="dv">1</span>)),</a>
+<a class="sourceLine" id="cb31-10" data-line-number="10">    <span class="dt">box=</span><span class="kw">list</span>(<span class="dt">lim=</span><span class="kw">c</span>(<span class="op">-</span><span class="dv">1</span>,<span class="dv">1</span>),<span class="dt">lim=</span><span class="kw">c</span>(<span class="op">-</span><span class="dv">1</span>,<span class="dv">1</span>))</a>
+<a class="sourceLine" id="cb31-11" data-line-number="11">  )</a>
+<a class="sourceLine" id="cb31-12" data-line-number="12">)</a></code></pre></div>
 <p>It is not a requirement to have a constraints object that do more complex manipulations of the modellist, but it is useful to stop undesirable (perhaps unphysical) exploration.</p>
 <p>The constraint object is really a function that takes modellist as an input and returns a modifed (but identical in skeleton structure) modellist output. For this reason it is generally best to make manipulations on the modellist directly rather than attempting to unlist (collapse) it and rebuild it etc (this can be done, but it is prone to coding error).</p>
 <p>The elements you access within the modellist structure must really exist or ProFit will stop with an error. All constraints manipulations happen internally to the model in linear (un-logged) form.</p>
 <p>Setup the data structure we need for optimisation, taking a few seconds to find the optimal convolution method:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Data=<span class="kw">profitSetupData</span>(<span class="dt">image=</span>image, <span class="dt">sigma=</span>sigma, <span class="dt">segim=</span>segim, <span class="dt">psf=</span>psf,
-                     <span class="dt">modellist=</span>modellist, <span class="dt">tofit=</span>tofit, <span class="dt">tolog=</span>tolog, <span class="dt">priors=</span>priors,
-                     <span class="dt">intervals=</span>intervals,<span class="dt">magzero=</span><span class="dv">0</span>, <span class="dt">algo.func=</span><span class="st">'optim'</span>, <span class="dt">like.func=</span><span class="st">&quot;t&quot;</span>,
-                     <span class="dt">verbose=</span><span class="ot">TRUE</span>)</code></pre></div>
+<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb32-1" data-line-number="1">Data=<span class="kw">profitSetupData</span>(<span class="dt">image=</span>image, <span class="dt">sigma=</span>sigma, <span class="dt">segim=</span>segim, <span class="dt">psf=</span>psf,</a>
+<a class="sourceLine" id="cb32-2" data-line-number="2">                     <span class="dt">modellist=</span>modellist, <span class="dt">tofit=</span>tofit, <span class="dt">tolog=</span>tolog, <span class="dt">priors=</span>priors,</a>
+<a class="sourceLine" id="cb32-3" data-line-number="3">                     <span class="dt">intervals=</span>intervals,<span class="dt">magzero=</span><span class="dv">0</span>, <span class="dt">algo.func=</span><span class="st">'optim'</span>, <span class="dt">like.func=</span><span class="st">&quot;t&quot;</span>,</a>
+<a class="sourceLine" id="cb32-4" data-line-number="4">                     <span class="dt">verbose=</span><span class="ot">TRUE</span>)</a></code></pre></div>
 <p>This produces a fairly complex R object, but with all the bits we need for fitting, e.g. (notice the tolog parameteres are now logged):</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Data<span class="op">$</span>init</code></pre></div>
+<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb33-1" data-line-number="1">Data<span class="op">$</span>init</a></code></pre></div>
 <pre><code>##  sersic.xcen1  sersic.ycen1   sersic.mag1   sersic.mag2    sersic.re1 
 ##    84.5000000    93.5000000    16.8321750    16.8321750     0.8486447 
 ##    sersic.re2  sersic.nser1   sersic.ang2 sersic.axrat2 
 ##     1.1496747     0.6412361   140.8191000    -0.3106023</code></pre>
 <p>These are the parameters we wish to fit for, and we take the initial guesses from the model list we provided before.</p>
 <p>We can test how things currently look (we get an output because we set verbose=TRUE earlier):</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">profitLikeModel</span>(<span class="dt">parm=</span>Data<span class="op">$</span>init, <span class="dt">Data=</span>Data, <span class="dt">makeplots=</span><span class="ot">TRUE</span>)</code></pre></div>
+<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb35-1" data-line-number="1"><span class="kw">profitLikeModel</span>(<span class="dt">parm=</span>Data<span class="op">$</span>init, <span class="dt">Data=</span>Data, <span class="dt">makeplots=</span><span class="ot">TRUE</span>)</a></code></pre></div>
 <pre><code>## [1] &quot;Summary of used sample:&quot;
 ##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
 ## -76.6588  -0.4123   0.4049   0.2498   1.2617  23.7657 
@@ -326,131 +559,131 @@ priors=<span class="kw">profitMakePriors</span>(modellist, sigmas, tolog, <span 
 <div id="do-some-fitting" class="section level2">
 <h2>Do some fitting</h2>
 <p>First we will try <code>optim</code> BFGS.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">sigmas=<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">5</span>,<span class="dv">5</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">30</span>,<span class="dv">30</span>,<span class="fl">0.3</span>,<span class="fl">0.3</span>)
-<span class="kw">print</span>(<span class="kw">system.time</span>({optimfit =<span class="st"> </span><span class="kw">optim</span>(Data<span class="op">$</span>init, profitLikeModel, <span class="dt">method=</span><span class="st">'BFGS'</span>, <span class="dt">Data=</span>Data,
-  <span class="dt">control=</span><span class="kw">list</span>(<span class="dt">fnscale=</span><span class="op">-</span><span class="dv">1</span>,<span class="dt">parscale=</span>sigmas[<span class="kw">which</span>(<span class="kw">unlist</span>(tofit))]))}))
-<span class="kw">print</span>(optimfit<span class="op">$</span>value)</code></pre></div>
+<div class="sourceCode" id="cb38"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb38-1" data-line-number="1">sigmas=<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">5</span>,<span class="dv">5</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">30</span>,<span class="dv">30</span>,<span class="fl">0.3</span>,<span class="fl">0.3</span>)</a>
+<a class="sourceLine" id="cb38-2" data-line-number="2"><span class="kw">print</span>(<span class="kw">system.time</span>({optimfit =<span class="st"> </span><span class="kw">optim</span>(Data<span class="op">$</span>init, profitLikeModel, <span class="dt">method=</span><span class="st">'BFGS'</span>, <span class="dt">Data=</span>Data,</a>
+<a class="sourceLine" id="cb38-3" data-line-number="3">  <span class="dt">control=</span><span class="kw">list</span>(<span class="dt">fnscale=</span><span class="op">-</span><span class="dv">1</span>,<span class="dt">parscale=</span>sigmas[<span class="kw">which</span>(<span class="kw">unlist</span>(tofit))]))}))</a>
+<a class="sourceLine" id="cb38-4" data-line-number="4"><span class="kw">print</span>(optimfit<span class="op">$</span>value)</a></code></pre></div>
 <p>The best <code>optim</code> BFGS fit is given by:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">optimfit<span class="op">$</span>par</code></pre></div>
+<div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb39-1" data-line-number="1">optimfit<span class="op">$</span>par</a></code></pre></div>
 <p>Check it out:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">profitLikeModel</span>(optimfit<span class="op">$</span>par,Data,<span class="dt">makeplots=</span><span class="ot">TRUE</span>,<span class="dt">whichcomponents=</span><span class="kw">list</span>(<span class="dt">sersic=</span><span class="dv">1</span>))
-<span class="kw">profitLikeModel</span>(optimfit<span class="op">$</span>par,Data,<span class="dt">makeplots=</span><span class="ot">TRUE</span>,<span class="dt">whichcomponents=</span><span class="kw">list</span>(<span class="dt">sersic=</span><span class="dv">2</span>))
-<span class="kw">profitLikeModel</span>(optimfit<span class="op">$</span>par,Data,<span class="dt">makeplots=</span><span class="ot">TRUE</span>,<span class="dt">whichcomponents=</span><span class="kw">list</span>(<span class="dt">sersic=</span><span class="st">'all'</span>))</code></pre></div>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">modeloptim=<span class="kw">profitRemakeModellist</span>(<span class="dt">parm=</span>optimfit<span class="op">$</span>par, <span class="dt">Data=</span>Data)<span class="op">$</span>modellist
-<span class="kw">profitEllipsePlot</span>(Data,modeloptim,<span class="dt">pixscale=</span><span class="fl">0.2</span>,<span class="dt">FWHM=</span><span class="fl">0.5</span>,<span class="dt">SBlim=</span><span class="dv">26</span>)</code></pre></div>
+<div class="sourceCode" id="cb40"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb40-1" data-line-number="1"><span class="kw">profitLikeModel</span>(optimfit<span class="op">$</span>par,Data,<span class="dt">makeplots=</span><span class="ot">TRUE</span>,<span class="dt">whichcomponents=</span><span class="kw">list</span>(<span class="dt">sersic=</span><span class="dv">1</span>))</a>
+<a class="sourceLine" id="cb40-2" data-line-number="2"><span class="kw">profitLikeModel</span>(optimfit<span class="op">$</span>par,Data,<span class="dt">makeplots=</span><span class="ot">TRUE</span>,<span class="dt">whichcomponents=</span><span class="kw">list</span>(<span class="dt">sersic=</span><span class="dv">2</span>))</a>
+<a class="sourceLine" id="cb40-3" data-line-number="3"><span class="kw">profitLikeModel</span>(optimfit<span class="op">$</span>par,Data,<span class="dt">makeplots=</span><span class="ot">TRUE</span>,<span class="dt">whichcomponents=</span><span class="kw">list</span>(<span class="dt">sersic=</span><span class="st">'all'</span>))</a></code></pre></div>
+<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb41-1" data-line-number="1">modeloptim=<span class="kw">profitRemakeModellist</span>(<span class="dt">parm=</span>optimfit<span class="op">$</span>par, <span class="dt">Data=</span>Data)<span class="op">$</span>modellist</a>
+<a class="sourceLine" id="cb41-2" data-line-number="2"><span class="kw">profitEllipsePlot</span>(Data,modeloptim,<span class="dt">pixscale=</span><span class="fl">0.2</span>,<span class="dt">FWHM=</span><span class="fl">0.5</span>,<span class="dt">SBlim=</span><span class="dv">26</span>)</a></code></pre></div>
 <p>Using constraints it is possible to force relative sizes between components etc. Here we do not want the bulge Re to become larger than the disk Re. We make the function and then put it in the Data list manually. You cannot properly use constraints using R’s optim function, but you can use LaplaceApproximation and LaplacesDemon because they receive modifications to the input parameters.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">constraints=<span class="cf">function</span>(modellist){
-  <span class="cf">if</span>(modellist<span class="op">$</span>sersic<span class="op">$</span>re[<span class="dv">1</span>]<span class="op">&gt;</span>modellist<span class="op">$</span>sersic<span class="op">$</span>re[<span class="dv">2</span>]){
-    modellist<span class="op">$</span>sersic<span class="op">$</span>re[<span class="dv">1</span>]=modellist<span class="op">$</span>sersic<span class="op">$</span>re[<span class="dv">2</span>]
-  }
-  return=modellist
-}
-Data<span class="op">$</span>constraints=constraints</code></pre></div>
+<div class="sourceCode" id="cb42"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb42-1" data-line-number="1">constraints=<span class="cf">function</span>(modellist){</a>
+<a class="sourceLine" id="cb42-2" data-line-number="2">  <span class="cf">if</span>(modellist<span class="op">$</span>sersic<span class="op">$</span>re[<span class="dv">1</span>]<span class="op">&gt;</span>modellist<span class="op">$</span>sersic<span class="op">$</span>re[<span class="dv">2</span>]){</a>
+<a class="sourceLine" id="cb42-3" data-line-number="3">    modellist<span class="op">$</span>sersic<span class="op">$</span>re[<span class="dv">1</span>]=modellist<span class="op">$</span>sersic<span class="op">$</span>re[<span class="dv">2</span>]</a>
+<a class="sourceLine" id="cb42-4" data-line-number="4">  }</a>
+<a class="sourceLine" id="cb42-5" data-line-number="5">  return=modellist</a>
+<a class="sourceLine" id="cb42-6" data-line-number="6">}</a>
+<a class="sourceLine" id="cb42-7" data-line-number="7">Data<span class="op">$</span>constraints=constraints</a></code></pre></div>
 <p>Another useful library for non-linear optimization is <code>nloptr</code>. nloptr is an interface to a C library with numerous optimizers. The required C library <code>nlopt-devel</code> should be available to install from your favourite package manager. For optimal performance, we’ll set up a vector of upper and lower bounds for the parameters. These can also be used in optim with the <code>L-BFGS-B</code> optimizer.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="cf">if</span>(<span class="kw">isTRUE</span>(<span class="st">&quot;nloptr&quot;</span> <span class="op">%in%</span><span class="st"> </span><span class="kw">rownames</span>(<span class="kw">installed.packages</span>())))
-{
-  <span class="kw">library</span>(nloptr)
-  intervals =<span class="st"> </span><span class="kw">unlist</span>(Data<span class="op">$</span>intervals)
-  tofit =<span class="st"> </span><span class="kw">unlist</span>(Data<span class="op">$</span>tofit)
-  npar =<span class="st"> </span><span class="kw">length</span>(tofit)
-  
-  whichfit =<span class="st"> </span><span class="kw">which</span>(tofit)
-  whichfitlog =<span class="st"> </span><span class="kw">which</span>(<span class="kw">unlist</span>(Data<span class="op">$</span>tolog)[whichfit])
-  lower =<span class="st"> </span>intervals[<span class="dv">2</span><span class="op">*</span>(<span class="dv">1</span><span class="op">:</span>npar)<span class="op">-</span><span class="dv">1</span>][whichfit]
-  upper =<span class="st"> </span>intervals[<span class="dv">2</span><span class="op">*</span>(<span class="dv">1</span><span class="op">:</span>npar)][whichfit]
-  lower[whichfitlog]=<span class="kw">log10</span>(lower[whichfitlog])
-  upper[whichfitlog]=<span class="kw">log10</span>(upper[whichfitlog])
-  
-  <span class="kw">system.time</span>({nloptfit =<span class="st"> </span><span class="kw">nloptr</span>(
-    <span class="dt">x0 =</span> Data<span class="op">$</span>init, <span class="dt">eval_f=</span><span class="cf">function</span>(x,Data) { <span class="kw">return</span>(<span class="op">-</span><span class="kw">profitLikeModel</span>(x,<span class="dt">Data=</span>Data))}, <span class="dt">lb =</span> lower, <span class="dt">ub =</span> upper,
-    <span class="dt">opts=</span><span class="kw">list</span>(<span class="dt">algorithm=</span><span class="kw">paste0</span>(<span class="st">&quot;NLOPT_LN_NELDERMEAD&quot;</span>),<span class="dt">xtol_rel=</span><span class="dv">0</span>,<span class="dt">ftol_abs=</span><span class="fl">1e-3</span>,<span class="dt">maxeval=</span><span class="fl">2e3</span>), <span class="dt">Data=</span>Data)})
-  <span class="kw">print</span>(<span class="op">-</span>nloptfit<span class="op">$</span>objective)
-}</code></pre></div>
+<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb43-1" data-line-number="1"><span class="cf">if</span>(<span class="kw">isTRUE</span>(<span class="st">&quot;nloptr&quot;</span> <span class="op">%in%</span><span class="st"> </span><span class="kw">rownames</span>(<span class="kw">installed.packages</span>())))</a>
+<a class="sourceLine" id="cb43-2" data-line-number="2">{</a>
+<a class="sourceLine" id="cb43-3" data-line-number="3">  <span class="kw">library</span>(nloptr)</a>
+<a class="sourceLine" id="cb43-4" data-line-number="4">  intervals =<span class="st"> </span><span class="kw">unlist</span>(Data<span class="op">$</span>intervals)</a>
+<a class="sourceLine" id="cb43-5" data-line-number="5">  tofit =<span class="st"> </span><span class="kw">unlist</span>(Data<span class="op">$</span>tofit)</a>
+<a class="sourceLine" id="cb43-6" data-line-number="6">  npar =<span class="st"> </span><span class="kw">length</span>(tofit)</a>
+<a class="sourceLine" id="cb43-7" data-line-number="7">  </a>
+<a class="sourceLine" id="cb43-8" data-line-number="8">  whichfit =<span class="st"> </span><span class="kw">which</span>(tofit)</a>
+<a class="sourceLine" id="cb43-9" data-line-number="9">  whichfitlog =<span class="st"> </span><span class="kw">which</span>(<span class="kw">unlist</span>(Data<span class="op">$</span>tolog)[whichfit])</a>
+<a class="sourceLine" id="cb43-10" data-line-number="10">  lower =<span class="st"> </span>intervals[<span class="dv">2</span><span class="op">*</span>(<span class="dv">1</span><span class="op">:</span>npar)<span class="op">-</span><span class="dv">1</span>][whichfit]</a>
+<a class="sourceLine" id="cb43-11" data-line-number="11">  upper =<span class="st"> </span>intervals[<span class="dv">2</span><span class="op">*</span>(<span class="dv">1</span><span class="op">:</span>npar)][whichfit]</a>
+<a class="sourceLine" id="cb43-12" data-line-number="12">  lower[whichfitlog]=<span class="kw">log10</span>(lower[whichfitlog])</a>
+<a class="sourceLine" id="cb43-13" data-line-number="13">  upper[whichfitlog]=<span class="kw">log10</span>(upper[whichfitlog])</a>
+<a class="sourceLine" id="cb43-14" data-line-number="14">  </a>
+<a class="sourceLine" id="cb43-15" data-line-number="15">  <span class="kw">system.time</span>({nloptfit =<span class="st"> </span><span class="kw">nloptr</span>(</a>
+<a class="sourceLine" id="cb43-16" data-line-number="16">    <span class="dt">x0 =</span> Data<span class="op">$</span>init, <span class="dt">eval_f=</span><span class="cf">function</span>(x,Data) { <span class="kw">return</span>(<span class="op">-</span><span class="kw">profitLikeModel</span>(x,<span class="dt">Data=</span>Data))}, <span class="dt">lb =</span> lower, <span class="dt">ub =</span> upper,</a>
+<a class="sourceLine" id="cb43-17" data-line-number="17">    <span class="dt">opts=</span><span class="kw">list</span>(<span class="dt">algorithm=</span><span class="kw">paste0</span>(<span class="st">&quot;NLOPT_LN_NELDERMEAD&quot;</span>),<span class="dt">xtol_rel=</span><span class="dv">0</span>,<span class="dt">ftol_abs=</span><span class="fl">1e-3</span>,<span class="dt">maxeval=</span><span class="fl">2e3</span>), <span class="dt">Data=</span>Data)})</a>
+<a class="sourceLine" id="cb43-18" data-line-number="18">  <span class="kw">print</span>(<span class="op">-</span>nloptfit<span class="op">$</span>objective)</a>
+<a class="sourceLine" id="cb43-19" data-line-number="19">}</a></code></pre></div>
 <p>One important consideration is how to determine convergence. Most optimizers test for convergence based on absolute and/or relative changes in the likelihood and/or parameters, but can also stop after a given elapsed time or number of iterations. It is important to check why the optimization stopped, especially before running MCMC, which can be slower to converge to the global minimum.</p>
 <p>Now we can try a <code>LaplaceApproximation</code> LM fit. This should take a few minutes:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="cf">if</span>(<span class="kw">isTRUE</span>(<span class="st">&quot;LaplacesDemon&quot;</span> <span class="op">%in%</span><span class="st"> </span><span class="kw">rownames</span>(<span class="kw">installed.packages</span>())))
-{
-  <span class="kw">library</span>(LaplacesDemon)
-  Data<span class="op">$</span>algo.func=<span class="st">&quot;LA&quot;</span>
-  <span class="kw">system.time</span>({LAfit =<span class="st"> </span><span class="kw">LaplaceApproximation</span>(profitLikeModel, <span class="dt">parm=</span>Data<span class="op">$</span>init, <span class="dt">Data=</span>Data, <span class="dt">Iterations=</span><span class="fl">1e3</span>,
-    <span class="dt">Method=</span><span class="st">'LM'</span>, <span class="dt">CovEst=</span><span class="st">'Identity'</span>, <span class="dt">sir=</span><span class="ot">FALSE</span>)})
-  <span class="kw">print</span>(LAfit<span class="op">$</span>LP.Final)
-  <span class="kw">system.time</span>({LAfitnm =<span class="st"> </span><span class="kw">LaplaceApproximation</span>(profitLikeModel, <span class="dt">parm=</span>Data<span class="op">$</span>init, <span class="dt">Data=</span>Data, <span class="dt">Iterations=</span><span class="fl">1e3</span>,
-    <span class="dt">Method=</span><span class="st">'NM'</span>, <span class="dt">CovEst=</span><span class="st">'Identity'</span>, <span class="dt">sir=</span><span class="ot">FALSE</span>)})
-  <span class="kw">print</span>(LAfitnm<span class="op">$</span>LP.Final)
-}</code></pre></div>
+<div class="sourceCode" id="cb44"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb44-1" data-line-number="1"><span class="cf">if</span>(<span class="kw">isTRUE</span>(<span class="st">&quot;LaplacesDemon&quot;</span> <span class="op">%in%</span><span class="st"> </span><span class="kw">rownames</span>(<span class="kw">installed.packages</span>())))</a>
+<a class="sourceLine" id="cb44-2" data-line-number="2">{</a>
+<a class="sourceLine" id="cb44-3" data-line-number="3">  <span class="kw">library</span>(LaplacesDemon)</a>
+<a class="sourceLine" id="cb44-4" data-line-number="4">  Data<span class="op">$</span>algo.func=<span class="st">&quot;LA&quot;</span></a>
+<a class="sourceLine" id="cb44-5" data-line-number="5">  <span class="kw">system.time</span>({LAfit =<span class="st"> </span><span class="kw">LaplaceApproximation</span>(profitLikeModel, <span class="dt">parm=</span>Data<span class="op">$</span>init, <span class="dt">Data=</span>Data, <span class="dt">Iterations=</span><span class="fl">1e3</span>,</a>
+<a class="sourceLine" id="cb44-6" data-line-number="6">    <span class="dt">Method=</span><span class="st">'LM'</span>, <span class="dt">CovEst=</span><span class="st">'Identity'</span>, <span class="dt">sir=</span><span class="ot">FALSE</span>)})</a>
+<a class="sourceLine" id="cb44-7" data-line-number="7">  <span class="kw">print</span>(LAfit<span class="op">$</span>LP.Final)</a>
+<a class="sourceLine" id="cb44-8" data-line-number="8">  <span class="kw">system.time</span>({LAfitnm =<span class="st"> </span><span class="kw">LaplaceApproximation</span>(profitLikeModel, <span class="dt">parm=</span>Data<span class="op">$</span>init, <span class="dt">Data=</span>Data, <span class="dt">Iterations=</span><span class="fl">1e3</span>,</a>
+<a class="sourceLine" id="cb44-9" data-line-number="9">    <span class="dt">Method=</span><span class="st">'NM'</span>, <span class="dt">CovEst=</span><span class="st">'Identity'</span>, <span class="dt">sir=</span><span class="ot">FALSE</span>)})</a>
+<a class="sourceLine" id="cb44-10" data-line-number="10">  <span class="kw">print</span>(LAfitnm<span class="op">$</span>LP.Final)</a>
+<a class="sourceLine" id="cb44-11" data-line-number="11">}</a></code></pre></div>
 <p>Note that LaplaceApproximation is typically slower than nlopt/optim, but it can be used to estimate uncertainties more quickly than by doing MCMC. The best LA LM fit is given by:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">LAfit<span class="op">$</span>Summary1[,<span class="dv">1</span>]</code></pre></div>
+<div class="sourceCode" id="cb45"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb45-1" data-line-number="1">LAfit<span class="op">$</span>Summary1[,<span class="dv">1</span>]</a></code></pre></div>
 <p>Check it out:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">profitLikeModel</span>(LAfit<span class="op">$</span>Summary1[,<span class="dv">1</span>],Data,<span class="dt">makeplots=</span><span class="ot">TRUE</span>,<span class="dt">whichcomponents=</span><span class="kw">list</span>(<span class="dt">sersic=</span><span class="dv">1</span>))
-<span class="kw">profitLikeModel</span>(LAfit<span class="op">$</span>Summary1[,<span class="dv">1</span>],Data,<span class="dt">makeplots=</span><span class="ot">TRUE</span>,<span class="dt">whichcomponents=</span><span class="kw">list</span>(<span class="dt">sersic=</span><span class="dv">2</span>))
-<span class="kw">profitLikeModel</span>(LAfit<span class="op">$</span>Summary1[,<span class="dv">1</span>],Data,<span class="dt">makeplots=</span><span class="ot">TRUE</span>,<span class="dt">whichcomponents=</span><span class="kw">list</span>(<span class="dt">sersic=</span><span class="st">'all'</span>))
-
-modelLA=<span class="kw">profitRemakeModellist</span>(LAfit<span class="op">$</span>Summary1[,<span class="dv">1</span>],Data<span class="op">$</span>modellist,Data<span class="op">$</span>tofit,Data<span class="op">$</span>tolog)<span class="op">$</span>modellist
-<span class="kw">profitEllipsePlot</span>(Data,modelLA,<span class="dt">pixscale=</span><span class="fl">0.2</span>,<span class="dt">FWHM=</span><span class="fl">0.5</span>,<span class="dt">SBlim=</span><span class="dv">26</span>)</code></pre></div>
+<div class="sourceCode" id="cb46"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb46-1" data-line-number="1"><span class="kw">profitLikeModel</span>(LAfit<span class="op">$</span>Summary1[,<span class="dv">1</span>],Data,<span class="dt">makeplots=</span><span class="ot">TRUE</span>,<span class="dt">whichcomponents=</span><span class="kw">list</span>(<span class="dt">sersic=</span><span class="dv">1</span>))</a>
+<a class="sourceLine" id="cb46-2" data-line-number="2"><span class="kw">profitLikeModel</span>(LAfit<span class="op">$</span>Summary1[,<span class="dv">1</span>],Data,<span class="dt">makeplots=</span><span class="ot">TRUE</span>,<span class="dt">whichcomponents=</span><span class="kw">list</span>(<span class="dt">sersic=</span><span class="dv">2</span>))</a>
+<a class="sourceLine" id="cb46-3" data-line-number="3"><span class="kw">profitLikeModel</span>(LAfit<span class="op">$</span>Summary1[,<span class="dv">1</span>],Data,<span class="dt">makeplots=</span><span class="ot">TRUE</span>,<span class="dt">whichcomponents=</span><span class="kw">list</span>(<span class="dt">sersic=</span><span class="st">'all'</span>))</a>
+<a class="sourceLine" id="cb46-4" data-line-number="4"></a>
+<a class="sourceLine" id="cb46-5" data-line-number="5">modelLA=<span class="kw">profitRemakeModellist</span>(LAfit<span class="op">$</span>Summary1[,<span class="dv">1</span>],Data<span class="op">$</span>modellist,Data<span class="op">$</span>tofit,Data<span class="op">$</span>tolog)<span class="op">$</span>modellist</a>
+<a class="sourceLine" id="cb46-6" data-line-number="6"><span class="kw">profitEllipsePlot</span>(Data,modelLA,<span class="dt">pixscale=</span><span class="fl">0.2</span>,<span class="dt">FWHM=</span><span class="fl">0.5</span>,<span class="dt">SBlim=</span><span class="dv">26</span>)</a></code></pre></div>
 <p>Other optimizers can be used. One particularly effective algorithm is <code>CMA-ES</code> (<code>Covariance Matrix Adaptation - Evolutionary Strategy</code>). <code>CMA-ES</code> samples multiple points (members of a population) from the supplied priors, and then adapts the priors each iteration, shrinking the parameter space that points are sampled from to converge on the best fit. It is a popular optimizer as it is fairly robust (but not immune) to becoming trapped in local minima while still fairly quick to converge.</p>
 <p>First make sure that the <code>cmaeshpc</code> package is installed:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(devtools)
-<span class="kw">install_github</span>(<span class="st">'taranu/cmaeshpc'</span>)</code></pre></div>
+<div class="sourceCode" id="cb47"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb47-1" data-line-number="1"><span class="kw">library</span>(devtools)</a>
+<a class="sourceLine" id="cb47-2" data-line-number="2"><span class="kw">install_github</span>(<span class="st">'taranu/cmaeshpc'</span>)</a></code></pre></div>
 <p>It is recommended to use narrower priors than the very broad ones specified above to speed up convergence:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="cf">if</span>(<span class="kw">isTRUE</span>(<span class="st">&quot;cmaeshpc&quot;</span> <span class="op">%in%</span><span class="st"> </span><span class="kw">rownames</span>(<span class="kw">installed.packages</span>())))
-{
-  <span class="kw">library</span>(cmaeshpc)
-  Data<span class="op">$</span>algo.func=<span class="st">&quot;CMA&quot;</span>
-  sigmas=<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">5</span>,<span class="dv">5</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">30</span>,<span class="dv">30</span>,<span class="fl">0.3</span>,<span class="fl">0.3</span>)
-  cmasigma=sigmas[<span class="kw">which</span>(<span class="kw">unlist</span>(tofit) <span class="op">==</span><span class="st"> </span><span class="ot">TRUE</span>)]<span class="op">/</span><span class="dv">3</span>
-  cmafit=<span class="kw">cmaeshpc</span>(Data<span class="op">$</span>init, profitLikeModel, <span class="dt">Data=</span>Data, <span class="dt">control=</span><span class="kw">list</span>(<span class="dt">maxit=</span><span class="fl">1e3</span>,
-    <span class="dt">fnscale=</span><span class="op">-</span><span class="fl">1.0</span>, <span class="dt">sigma=</span>cmasigma, <span class="dt">diag.sigma=</span><span class="ot">TRUE</span>, <span class="dt">diag.eigen=</span><span class="ot">TRUE</span>, <span class="dt">diag.pop=</span><span class="ot">TRUE</span>,
-    <span class="dt">diag.value=</span><span class="ot">TRUE</span>, <span class="dt">maxwalltime=</span><span class="ot">Inf</span>, <span class="dt">trace=</span><span class="ot">TRUE</span>, <span class="dt">stopfitness=</span><span class="dv">0</span>, <span class="dt">stop.tolx=</span><span class="fl">1e-3</span><span class="op">*</span>cmasigma))
-  <span class="kw">profitLikeModel</span>(cmafit<span class="op">$</span>par,Data,<span class="dt">makeplots=</span><span class="ot">TRUE</span>)
-}</code></pre></div>
+<div class="sourceCode" id="cb48"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb48-1" data-line-number="1"><span class="cf">if</span>(<span class="kw">isTRUE</span>(<span class="st">&quot;cmaeshpc&quot;</span> <span class="op">%in%</span><span class="st"> </span><span class="kw">rownames</span>(<span class="kw">installed.packages</span>())))</a>
+<a class="sourceLine" id="cb48-2" data-line-number="2">{</a>
+<a class="sourceLine" id="cb48-3" data-line-number="3">  <span class="kw">library</span>(cmaeshpc)</a>
+<a class="sourceLine" id="cb48-4" data-line-number="4">  Data<span class="op">$</span>algo.func=<span class="st">&quot;CMA&quot;</span></a>
+<a class="sourceLine" id="cb48-5" data-line-number="5">  sigmas=<span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">5</span>,<span class="dv">5</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">30</span>,<span class="dv">30</span>,<span class="fl">0.3</span>,<span class="fl">0.3</span>)</a>
+<a class="sourceLine" id="cb48-6" data-line-number="6">  cmasigma=sigmas[<span class="kw">which</span>(<span class="kw">unlist</span>(tofit) <span class="op">==</span><span class="st"> </span><span class="ot">TRUE</span>)]<span class="op">/</span><span class="dv">3</span></a>
+<a class="sourceLine" id="cb48-7" data-line-number="7">  cmafit=<span class="kw">cmaeshpc</span>(Data<span class="op">$</span>init, profitLikeModel, <span class="dt">Data=</span>Data, <span class="dt">control=</span><span class="kw">list</span>(<span class="dt">maxit=</span><span class="fl">1e3</span>,</a>
+<a class="sourceLine" id="cb48-8" data-line-number="8">    <span class="dt">fnscale=</span><span class="op">-</span><span class="fl">1.0</span>, <span class="dt">sigma=</span>cmasigma, <span class="dt">diag.sigma=</span><span class="ot">TRUE</span>, <span class="dt">diag.eigen=</span><span class="ot">TRUE</span>, <span class="dt">diag.pop=</span><span class="ot">TRUE</span>,</a>
+<a class="sourceLine" id="cb48-9" data-line-number="9">    <span class="dt">diag.value=</span><span class="ot">TRUE</span>, <span class="dt">maxwalltime=</span><span class="ot">Inf</span>, <span class="dt">trace=</span><span class="ot">TRUE</span>, <span class="dt">stopfitness=</span><span class="dv">0</span>, <span class="dt">stop.tolx=</span><span class="fl">1e-3</span><span class="op">*</span>cmasigma))</a>
+<a class="sourceLine" id="cb48-10" data-line-number="10">  <span class="kw">profitLikeModel</span>(cmafit<span class="op">$</span>par,Data,<span class="dt">makeplots=</span><span class="ot">TRUE</span>)</a>
+<a class="sourceLine" id="cb48-11" data-line-number="11">}</a></code></pre></div>
 <p><code>CMA-ES</code> sometimes takes longer than <code>LaplaceApproximation</code> - depending on the convergence criterion specified by <code>stop.tolx</code> - but it usually finds a better fit, and can be run many times to avoid becoming trapped in local minima. Alternately, you may wish to use the faster <code>LaplaceApproximation</code> first, redefine your priors, and then run <code>CMA-ES</code> to search around the <code>LaplaceApproximation</code> best fit.</p>
 <p>Now we can try a <code>LaplacesDemon</code> fit (this will take about an hour):</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Data<span class="op">$</span>algo.func=<span class="st">&quot;LD&quot;</span>
-
-LDfit=<span class="kw">LaplacesDemon</span>(profitLikeModel, <span class="dt">Initial.Values=</span>LAfit<span class="op">$</span>Summary1[,<span class="dv">1</span>], <span class="dt">Data=</span>Data,
-  <span class="dt">Iterations=</span><span class="fl">1e4</span>, <span class="dt">Algorithm=</span><span class="st">'CHARM'</span>, <span class="dt">Thinning=</span><span class="dv">1</span>, <span class="dt">Specs=</span><span class="kw">list</span>(<span class="dt">alpha.star=</span><span class="fl">0.44</span>))</code></pre></div>
+<div class="sourceCode" id="cb49"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb49-1" data-line-number="1">Data<span class="op">$</span>algo.func=<span class="st">&quot;LD&quot;</span></a>
+<a class="sourceLine" id="cb49-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb49-3" data-line-number="3">LDfit=<span class="kw">LaplacesDemon</span>(profitLikeModel, <span class="dt">Initial.Values=</span>LAfit<span class="op">$</span>Summary1[,<span class="dv">1</span>], <span class="dt">Data=</span>Data,</a>
+<a class="sourceLine" id="cb49-4" data-line-number="4">  <span class="dt">Iterations=</span><span class="fl">1e4</span>, <span class="dt">Algorithm=</span><span class="st">'CHARM'</span>, <span class="dt">Thinning=</span><span class="dv">1</span>, <span class="dt">Specs=</span><span class="kw">list</span>(<span class="dt">alpha.star=</span><span class="fl">0.44</span>))</a></code></pre></div>
 <p>If it has converged well you will have a Summary2 structure using the ESS:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">LDfit<span class="op">$</span>Summary2</code></pre></div>
+<div class="sourceCode" id="cb50"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb50-1" data-line-number="1">LDfit<span class="op">$</span>Summary2</a></code></pre></div>
 <p>If not you can still check Summary1:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">LDfit<span class="op">$</span>Summary1</code></pre></div>
+<div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb51-1" data-line-number="1">LDfit<span class="op">$</span>Summary1</a></code></pre></div>
 <p>The global fit should be close to the initial LA fit (shown in blue in the following figures).</p>
 <p>With any luck you have enough stationary samples to run:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">BestLD=<span class="kw">magtri</span>(LDfit<span class="op">$</span>Posterior2, <span class="dt">samples=</span><span class="dv">500</span>, <span class="dt">samptype=</span><span class="st">'ran'</span>)</code></pre></div>
+<div class="sourceCode" id="cb52"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb52-1" data-line-number="1">BestLD=<span class="kw">magtri</span>(LDfit<span class="op">$</span>Posterior2, <span class="dt">samples=</span><span class="dv">500</span>, <span class="dt">samptype=</span><span class="st">'ran'</span>)</a></code></pre></div>
 <p>Otherwise try:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">BestLD=<span class="kw">magtri</span>(LDfit<span class="op">$</span>Posterior1, <span class="dt">samples=</span><span class="dv">1000</span>, <span class="dt">samptype=</span><span class="st">'end'</span>)</code></pre></div>
+<div class="sourceCode" id="cb53"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb53-1" data-line-number="1">BestLD=<span class="kw">magtri</span>(LDfit<span class="op">$</span>Posterior1, <span class="dt">samples=</span><span class="dv">1000</span>, <span class="dt">samptype=</span><span class="st">'end'</span>)</a></code></pre></div>
 <p>We can now check our final fit:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">profitLikeModel</span>(BestLD,Data,<span class="dt">makeplots=</span><span class="ot">TRUE</span>,<span class="dt">whichcomponents=</span><span class="kw">list</span>(<span class="dt">sersic=</span><span class="dv">1</span>))
-<span class="kw">profitLikeModel</span>(BestLD,Data,<span class="dt">makeplots=</span><span class="ot">TRUE</span>,<span class="dt">whichcomponents=</span><span class="kw">list</span>(<span class="dt">sersic=</span><span class="dv">2</span>))
-<span class="kw">profitLikeModel</span>(BestLD,Data,<span class="dt">makeplots=</span><span class="ot">TRUE</span>,<span class="dt">whichcomponents=</span><span class="kw">list</span>(<span class="dt">sersic=</span><span class="st">'all'</span>))
-
-modelLD=<span class="kw">profitRemakeModellist</span>(BestLD,Data<span class="op">$</span>modellist,Data<span class="op">$</span>tofit,Data<span class="op">$</span>tolog)<span class="op">$</span>modellist
-<span class="kw">profitEllipsePlot</span>(Data,modelLD,<span class="dt">pixscale=</span><span class="fl">0.2</span>,<span class="dt">FWHM=</span><span class="fl">0.5</span>,<span class="dt">SBlim=</span><span class="dv">26</span>)</code></pre></div>
+<div class="sourceCode" id="cb54"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb54-1" data-line-number="1"><span class="kw">profitLikeModel</span>(BestLD,Data,<span class="dt">makeplots=</span><span class="ot">TRUE</span>,<span class="dt">whichcomponents=</span><span class="kw">list</span>(<span class="dt">sersic=</span><span class="dv">1</span>))</a>
+<a class="sourceLine" id="cb54-2" data-line-number="2"><span class="kw">profitLikeModel</span>(BestLD,Data,<span class="dt">makeplots=</span><span class="ot">TRUE</span>,<span class="dt">whichcomponents=</span><span class="kw">list</span>(<span class="dt">sersic=</span><span class="dv">2</span>))</a>
+<a class="sourceLine" id="cb54-3" data-line-number="3"><span class="kw">profitLikeModel</span>(BestLD,Data,<span class="dt">makeplots=</span><span class="ot">TRUE</span>,<span class="dt">whichcomponents=</span><span class="kw">list</span>(<span class="dt">sersic=</span><span class="st">'all'</span>))</a>
+<a class="sourceLine" id="cb54-4" data-line-number="4"></a>
+<a class="sourceLine" id="cb54-5" data-line-number="5">modelLD=<span class="kw">profitRemakeModellist</span>(BestLD,Data<span class="op">$</span>modellist,Data<span class="op">$</span>tofit,Data<span class="op">$</span>tolog)<span class="op">$</span>modellist</a>
+<a class="sourceLine" id="cb54-6" data-line-number="6"><span class="kw">profitEllipsePlot</span>(Data,modelLD,<span class="dt">pixscale=</span><span class="fl">0.2</span>,<span class="dt">FWHM=</span><span class="fl">0.5</span>,<span class="dt">SBlim=</span><span class="dv">26</span>)</a></code></pre></div>
 <p>In the previous examples, the resolution of the convolved model was limited by the size of the pixels, since convolution can only spread flux from pixel-to-pixel. We can do better by sampling the model and PSF on a finer grid than the pixel scale (“fine-sampling”), through interpolation for empirical PSFs.</p>
 <p>To test this, set up the data again. This time we will fine-sample the model and PSF by a factor of 3, taking a minute to benchmark convolution methods:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Dataf=<span class="kw">profitSetupData</span>(<span class="dt">image=</span>image, <span class="dt">sigma=</span>sigma, <span class="dt">segim=</span>segim, <span class="dt">psf=</span>psf,
-  <span class="dt">modellist=</span>modellist, <span class="dt">tofit=</span>tofit, <span class="dt">tolog=</span>tolog, <span class="dt">priors=</span>priors, <span class="dt">intervals=</span>intervals,
-  <span class="dt">magzero=</span><span class="dv">0</span>, <span class="dt">algo.func=</span><span class="st">'LD'</span>, <span class="dt">verbose=</span><span class="ot">TRUE</span>, <span class="dt">nbenchmark=</span>3L, <span class="dt">finesample=</span>3L)</code></pre></div>
+<div class="sourceCode" id="cb55"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb55-1" data-line-number="1">Dataf=<span class="kw">profitSetupData</span>(<span class="dt">image=</span>image, <span class="dt">sigma=</span>sigma, <span class="dt">segim=</span>segim, <span class="dt">psf=</span>psf,</a>
+<a class="sourceLine" id="cb55-2" data-line-number="2">  <span class="dt">modellist=</span>modellist, <span class="dt">tofit=</span>tofit, <span class="dt">tolog=</span>tolog, <span class="dt">priors=</span>priors, <span class="dt">intervals=</span>intervals,</a>
+<a class="sourceLine" id="cb55-3" data-line-number="3">  <span class="dt">magzero=</span><span class="dv">0</span>, <span class="dt">algo.func=</span><span class="st">'LD'</span>, <span class="dt">verbose=</span><span class="ot">TRUE</span>, <span class="dt">nbenchmark=</span>3L, <span class="dt">finesample=</span>3L)</a></code></pre></div>
 <p>Note that profitSetupData automagically fine-sampled the PSF by interpolation. Usually, brute-force convolution is faster than an FFT (which requires 2x padding to avoid artifacts), but it scales as finesample^4, so FFT is often faster with large images and/or PSFs.</p>
 <p>Let’s check to see how the fine-sampled model looks:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">profitLikeModel</span>(BestLD,Dataf,<span class="dt">makeplots=</span><span class="ot">TRUE</span>,<span class="dt">whichcomponents=</span><span class="kw">list</span>(<span class="dt">sersic=</span><span class="st">'all'</span>))</code></pre></div>
+<div class="sourceCode" id="cb56"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb56-1" data-line-number="1"><span class="kw">profitLikeModel</span>(BestLD,Dataf,<span class="dt">makeplots=</span><span class="ot">TRUE</span>,<span class="dt">whichcomponents=</span><span class="kw">list</span>(<span class="dt">sersic=</span><span class="st">'all'</span>))</a></code></pre></div>
 <p>That doesn’t look so different, but let’s run <code>LaplaceApproximation</code> again to see how the best-fit parameters changed:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Dataf<span class="op">$</span>algo.func=<span class="st">&quot;LA&quot;</span>
-LAfitf=<span class="kw">LaplaceApproximation</span>(profitLikeModel, <span class="dt">parm=</span>LAfit<span class="op">$</span>Summary1[,<span class="dv">1</span>], <span class="dt">Data=</span>Dataf, <span class="dt">Iterations=</span><span class="fl">1e3</span>,
-  <span class="dt">Method=</span><span class="st">'BFGS'</span>, <span class="dt">CovEst=</span><span class="st">'Identity'</span>, <span class="dt">sir=</span><span class="ot">FALSE</span>)</code></pre></div>
+<div class="sourceCode" id="cb57"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb57-1" data-line-number="1">Dataf<span class="op">$</span>algo.func=<span class="st">&quot;LA&quot;</span></a>
+<a class="sourceLine" id="cb57-2" data-line-number="2">LAfitf=<span class="kw">LaplaceApproximation</span>(profitLikeModel, <span class="dt">parm=</span>LAfit<span class="op">$</span>Summary1[,<span class="dv">1</span>], <span class="dt">Data=</span>Dataf, <span class="dt">Iterations=</span><span class="fl">1e3</span>,</a>
+<a class="sourceLine" id="cb57-3" data-line-number="3">  <span class="dt">Method=</span><span class="st">'BFGS'</span>, <span class="dt">CovEst=</span><span class="st">'Identity'</span>, <span class="dt">sir=</span><span class="ot">FALSE</span>)</a></code></pre></div>
 <p>Does the new best fit look slightly better? It should:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">profitLikeModel</span>(LAfitf<span class="op">$</span>Summary1[,<span class="dv">1</span>],Dataf,<span class="dt">makeplots=</span><span class="ot">TRUE</span>)</code></pre></div>
+<div class="sourceCode" id="cb58"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb58-1" data-line-number="1"><span class="kw">profitLikeModel</span>(LAfitf<span class="op">$</span>Summary1[,<span class="dv">1</span>],Dataf,<span class="dt">makeplots=</span><span class="ot">TRUE</span>)</a></code></pre></div>
 <p>Now run <code>LaplacesDemon</code> again, with fewer iterations to begin with (as it’s slower to convolve):</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Dataf<span class="op">$</span>algo.func=<span class="st">&quot;LD&quot;</span>
-
-LDfitf=<span class="kw">LaplacesDemon</span>(profitLikeModel, <span class="dt">Initial.Values=</span>LAfitf<span class="op">$</span>Summary1[,<span class="dv">1</span>], <span class="dt">Data=</span>Dataf,
-  <span class="dt">Iterations=</span><span class="fl">1e3</span>, <span class="dt">Algorithm=</span><span class="st">'CHARM'</span>, <span class="dt">Thinning=</span><span class="dv">1</span>, <span class="dt">Specs=</span><span class="kw">list</span>(<span class="dt">alpha.star=</span><span class="fl">0.44</span>))</code></pre></div>
+<div class="sourceCode" id="cb59"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb59-1" data-line-number="1">Dataf<span class="op">$</span>algo.func=<span class="st">&quot;LD&quot;</span></a>
+<a class="sourceLine" id="cb59-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb59-3" data-line-number="3">LDfitf=<span class="kw">LaplacesDemon</span>(profitLikeModel, <span class="dt">Initial.Values=</span>LAfitf<span class="op">$</span>Summary1[,<span class="dv">1</span>], <span class="dt">Data=</span>Dataf,</a>
+<a class="sourceLine" id="cb59-4" data-line-number="4">  <span class="dt">Iterations=</span><span class="fl">1e3</span>, <span class="dt">Algorithm=</span><span class="st">'CHARM'</span>, <span class="dt">Thinning=</span><span class="dv">1</span>, <span class="dt">Specs=</span><span class="kw">list</span>(<span class="dt">alpha.star=</span><span class="fl">0.44</span>))</a></code></pre></div>
 <p>If you run the above for 1e4 iterations (will take several hours), try comparing posteriors:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">LDfit<span class="op">$</span>Summary2
-LDfitf<span class="op">$</span>Summary2
-
-BestLDf=<span class="kw">magtri</span>(LDfit<span class="op">$</span>Posterior1, <span class="dt">samptype=</span><span class="st">'end'</span>)
-<span class="kw">profitLikeModel</span>(BestLDf,Dataf,<span class="dt">makeplots=</span><span class="ot">TRUE</span>)</code></pre></div>
+<div class="sourceCode" id="cb60"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb60-1" data-line-number="1">LDfit<span class="op">$</span>Summary2</a>
+<a class="sourceLine" id="cb60-2" data-line-number="2">LDfitf<span class="op">$</span>Summary2</a>
+<a class="sourceLine" id="cb60-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb60-4" data-line-number="4">BestLDf=<span class="kw">magtri</span>(LDfit<span class="op">$</span>Posterior1, <span class="dt">samptype=</span><span class="st">'end'</span>)</a>
+<a class="sourceLine" id="cb60-5" data-line-number="5"><span class="kw">profitLikeModel</span>(BestLDf,Dataf,<span class="dt">makeplots=</span><span class="ot">TRUE</span>)</a></code></pre></div>
 </div>
 
 

@@ -12,7 +12,7 @@ profitDataBenchmark(modellist, calcregion, imgdim,
   finesample=1L, psf=NULL, fitpsf=FALSE, omp_threads=NULL, openclenv=NULL,
   openclenv_int=openclenv, openclenv_conv=openclenv,
   nbenchmark=0L, nbenchint=nbenchmark, nbenchconv=nbenchmark,
-  benchintmethods=c("brute"), benchconvmethods = c("brute","fft"),
+  benchintmethods=c("brute"), benchconvmethods = c("brute","fftw"),
   benchprecisions="double", benchconvprecisions=benchprecisions,
   benchintprecisions=benchprecisions,
   benchopenclenvs = profitGetOpenCLEnvs(make.envs = TRUE),
@@ -218,4 +218,5 @@ system.time(profitLikeModel(parm=Data$init, Data=Data))
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
-\keyword{ benchmark, data }
+\concept{ benchmark}
+\concept{ data }

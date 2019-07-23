@@ -21,6 +21,8 @@ profitGetOpenCLEnvs(name = "opencl", make.envs = FALSE)
 }
 \value{
 The output is a data.frame with information on every device for each available environment.
+
+Note, if the sub-list returned by \code{\link{profitOpenCLEnvInfo}} has NULL devices then that openCL device will be skipped when compiling this data.frame.
 }
 \author{
 Dan Taranu
@@ -36,5 +38,5 @@ str(envs)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
-\keyword{ GPU }
-\keyword{ OpenCL }
+\concept{ GPU }
+\concept{ OpenCL }

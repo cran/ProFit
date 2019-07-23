@@ -32,12 +32,12 @@ An example running on a MacBook pro might look like:
 Rodrigo Tobar & Aaron Robotham
 }
 \seealso{
-\code{\link{profitOpenCLEnv}}, \code{\link{profitMakeModel}}, \code{\link{profitSetupData}}
+\code{\link{profitOpenCLEnv}}, \code{\link{profitClearCache}} \code{\link{profitMakeModel}}, \code{\link{profitSetupData}}
 }
 \examples{
 profitOpenCLEnvInfo()
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
-\keyword{ GPU }% use one of  RShowDoc("KEYWORDS")
-\keyword{ OpenCL }% __ONLY ONE__ keyword per line
+\concept{ GPU }% use one of  RShowDoc("KEYWORDS")
+\concept{ OpenCL }% __ONLY ONE__ keyword per line

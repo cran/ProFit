@@ -13,7 +13,7 @@ intervals, constraints, psf=NULL, psfdim=dim(psf), finesample=1L, psffinesampled
 magzero=0, algo.func='LA', like.func="norm", magmu=FALSE, verbose=FALSE,
 omp_threads = NULL, openclenv=NULL, openclenv_int=openclenv, openclenv_conv=openclenv,
 nbenchmark=0L, nbenchint=nbenchmark, nbenchconv=nbenchmark,
-benchintmethods=c("brute"), benchconvmethods = c("brute","fft"),
+benchintmethods=c("brute"), benchconvmethods = c("brute","fftw"),
 benchprecisions="double", benchconvprecisions=benchprecisions,
 benchintprecisions=benchprecisions,
 benchopenclenvs = profitGetOpenCLEnvs(make.envs = TRUE),
@@ -489,4 +489,4 @@ profitLikeModel(parm=Data$init, Data=Data, makeplots=TRUE, plotchisq=TRUE)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
-\keyword{ data }
+\concept{ data }
